@@ -143,7 +143,7 @@ fun ProductDetailScreen(
             Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
                 Text(
                     text = productDetail.title,
-                    fontSize = 20.sp, 
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
