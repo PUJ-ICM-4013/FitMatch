@@ -1,6 +1,6 @@
 package com.example.fitmatch.presentation.navigation
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -15,42 +15,43 @@ import com.example.fitmatch.presentation.ui.components.BottomNavItem
 import com.example.fitmatch.presentation.ui.components.BottomNavigationBar
 import com.example.fitmatch.presentation.ui.screens.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavigation() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val bottomNavItems = listOf(
-        BottomNavItem(
-            route = NavigationRoutes.HOME,
-            icon = Icons.Default.Home,
-            label = "Home"
-        ),
-        BottomNavItem(
-            route = NavigationRoutes.SEARCH,
-            icon = Icons.Default.Search,
-            label = "Search"
-        ),
-        BottomNavItem(
-            route = NavigationRoutes.INBOX,
-            icon = Icons.Default.Email,
-            label = "Inbox"
-        ),
-        BottomNavItem(
-            route = NavigationRoutes.NOTIFICATIONS,
-            icon = Icons.Default.Notifications,
-            label = "Notifications",
-            badgeCount = 5 // Ejemplo de badge con notificaciones
-        ),
-        BottomNavItem(
-            route = NavigationRoutes.PROFILE,
-            icon = Icons.Default.Person,
-            label = "Profile",
-            isProfile = true
+    val bottomNavItems = remember {
+        listOf(
+            BottomNavItem(
+                route = NavigationRoutes.HOME,
+                icon = Icons.Default.Home,
+                label = "Home"
+            ),
+            BottomNavItem(
+                route = NavigationRoutes.SEARCH,
+                icon = Icons.Default.Search,
+                label = "Search"
+            ),
+            BottomNavItem(
+                route = NavigationRoutes.INBOX,
+                icon = Icons.Default.Email,
+                label = "Inbox"
+            ),
+            BottomNavItem(
+                route = NavigationRoutes.NOTIFICATIONS,
+                icon = Icons.Default.Notifications,
+                label = "Notifications",
+                badgeCount = 5
+            ),
+            BottomNavItem(
+                route = NavigationRoutes.PROFILE,
+                icon = Icons.Default.Person,
+                label = "Profile",
+                isProfile = true
+            )
         )
-    )
+    }
 
     Scaffold(
         bottomBar = {
@@ -58,18 +59,17 @@ fun MainNavigation() {
                 items = bottomNavItems,
                 currentRoute = currentDestination?.route ?: NavigationRoutes.HOME,
                 onItemClick = { route ->
-                    navController.navigate(route) {
-                        // Evita múltiples copias de la misma pantalla en el stack
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                    if (currentDestination?.route != route) {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        // Evita recomposiciones innecesarias
-                        launchSingleTop = true
-                        // Restaura el estado cuando navegamos de vuelta
-                        restoreState = true
                     }
                 },
-                profileImageUrl = "https://example.com/profile.jpg" // URL de ejemplo
+                profileImageUrl = null // Sin imagen por ahora para evitar errores
             )
         }
     ) { paddingValues ->

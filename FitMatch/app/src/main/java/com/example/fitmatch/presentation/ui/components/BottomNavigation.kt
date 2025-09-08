@@ -13,7 +13,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -83,17 +82,21 @@ private fun IconWithBadge(
         )
 
         if (badgeCount > 0) {
-            Badge(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .offset(x = 6.dp, y = (-6).dp),
-                containerColor = Color(0xFF8B4513) // Color marrón como en la imagen
+            BadgedBox(
+                badge = {
+                    Badge(
+                        containerColor = Color(0xFF8B4513) // Color marrón como en la imagen
+                    ) {
+                        Text(
+                            text = badgeCount.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp
+                        )
+                    }
+                }
             ) {
-                Text(
-                    text = badgeCount.toString(),
-                    color = Color.White,
-                    fontSize = 10.sp
-                )
+                // Espacio invisible para el badge
+                Spacer(modifier = Modifier.size(24.dp))
             }
         }
     }
@@ -110,7 +113,7 @@ private fun ProfileIcon(
             .clip(CircleShape)
             .background(Color.Gray.copy(alpha = 0.3f))
     ) {
-        if (imageUrl != null) {
+        if (imageUrl != null && imageUrl.isNotEmpty() && imageUrl != "https://example.com/profile.jpg") {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = "Profile",
