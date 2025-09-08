@@ -210,7 +210,6 @@ private fun PreferenceOptionCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Icono (en una app real sería una imagen)
             Icon(
                 imageVector = option.icon,
                 contentDescription = option.title,
@@ -220,7 +219,6 @@ private fun PreferenceOptionCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Título
             Text(
                 text = option.title,
                 fontSize = 14.sp,
