@@ -64,7 +64,7 @@ fun InboxScreen() {
 }
 
 @Composable
-fun NotificationsScreen() {
+fun NotificationScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
