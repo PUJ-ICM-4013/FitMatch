@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.coil.compose)
     implementation(libs.androidx.activity.compose.v181)
+    implementation("androidx.compose.material:material-icons-extended")
+
     // build.gradle (Module: app)
 
 
