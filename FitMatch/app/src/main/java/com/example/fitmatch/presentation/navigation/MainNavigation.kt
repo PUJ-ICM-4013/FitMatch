@@ -79,13 +79,13 @@ fun MainNavigation() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(NavigationRoutes.HOME) {
-                HomeScreen()
+                CLienteDashboardScreen()
             }
             composable(NavigationRoutes.SEARCH) {
                 SearchScreen()
             }
             composable(NavigationRoutes.INBOX) {
-                InboxScreen()
+                ChatScreen()
             }
             composable(NavigationRoutes.NOTIFICATIONS) {
                 NotificationsScreen()
