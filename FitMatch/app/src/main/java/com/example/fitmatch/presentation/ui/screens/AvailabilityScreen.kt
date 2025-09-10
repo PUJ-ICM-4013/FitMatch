@@ -19,8 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fitmatch.presentation.ui.theme.FitMatchTheme
-
+import com.example.compose.FitMatchTheme
 @Composable
 fun AvailabilityScreen(
     onSave: () -> Unit = {}

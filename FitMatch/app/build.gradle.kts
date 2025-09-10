@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.fitmatch"
-        minSdk = 24
+        minSdk = 25
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -49,8 +49,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+<<<<<<< HEAD
     implementation(libs.androidx.foundation)
     implementation(libs.androidx.tv.material)
+=======
+    implementation(libs.androidx.compose.material)
+>>>>>>> 1825a4db12a92ef5346399ec8dd74dbc25a35a7b
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -32,13 +32,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.fitmatch.presentation.ui.theme.FitMatchTheme
+import com.example.compose.FitMatchTheme
 
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun FitMatchHomeScreen(
+fun CLienteDashboardScreen(
     modifier: Modifier = Modifier,
     onMenuClick: () -> Unit = {},
     onBookmarkClick: () -> Unit = {},
@@ -264,8 +264,8 @@ private fun BigCircleAction(
     device = "id:pixel_6"
 )
 @Composable
-fun FitMatchHomeScreenPreview() {
+fun ClienteDashboardScreenPreview() {
     FitMatchTheme {
-        FitMatchHomeScreen()
+        CLienteDashboardScreen()
     }
 }
