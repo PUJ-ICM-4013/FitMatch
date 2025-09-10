@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.fitmatch.presentation.ui.theme.FitMatchTheme
+import com.example.compose.FitMatchTheme
 
 /* ---------------------------- Model / Mock data ---------------------------- */
 
