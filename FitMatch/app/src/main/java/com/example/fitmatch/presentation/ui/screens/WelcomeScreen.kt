@@ -1,17 +1,14 @@
 package com.example.fitmatch.presentation.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,9 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.FitMatchTheme
 
-
-
-@Preview(showBackground = true)
 @Composable
 fun WelcomeScreen(
     onCreateAccount: () -> Unit = {},
@@ -29,11 +23,13 @@ fun WelcomeScreen(
     onContinueWithGoogle: () -> Unit = {},
     onContinueWithApple: () -> Unit = {}
 ) {
-    FitMatchTheme {
+
+    val colors = MaterialTheme.colorScheme
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Fondo beige claro
+            .background(colors.background) // Fondo del tema
     ) {
         Column(
             modifier = Modifier
@@ -48,29 +44,28 @@ fun WelcomeScreen(
                 text = "¡Bienvenido/a a FitMatch!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF8B4513), // Color marrón
+                color = colors.onBackground, // del tema
                 textAlign = TextAlign.Center
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Personaje "Tito" - usando un placeholder o imagen local
+            // Personaje "Tito" (placeholder)
             Box(
                 modifier = Modifier
                     .size(200.dp)
                     .background(
-                        Color(0xFF8B4513).copy(alpha = 0.1f),
+                        colors.primary.copy(alpha = 0.12f), // tinte del color principal
                         RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                // Aquí podrías usar una imagen real del personaje
                 Text(
                     text = "👋\nHola,\nsoy Tito",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
-                    color = Color(0xFF8B4513)
+                    color = colors.primary // texto con color principal del tema
                 )
             }
 
@@ -88,13 +83,13 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B4513)
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     ),
                     shape = RoundedCornerShape(25.dp)
                 ) {
                     Text(
                         text = "Crear Cuenta",
-                        color = Color.White,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -107,7 +102,8 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B4513)
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     ),
                     shape = RoundedCornerShape(25.dp)
                 ) {
@@ -117,14 +113,11 @@ fun WelcomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Email,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Continuar con Email o Teléfono",
-                            color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -138,7 +131,8 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B4513)
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     ),
                     shape = RoundedCornerShape(25.dp)
                 ) {
@@ -148,14 +142,12 @@ fun WelcomeScreen(
                     ) {
                         Text(
                             text = "G",
-                            color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Continuar con Google",
-                            color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -169,7 +161,8 @@ fun WelcomeScreen(
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8B4513)
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
                     ),
                     shape = RoundedCornerShape(25.dp)
                 ) {
@@ -177,16 +170,10 @@ fun WelcomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(
-                            text = "",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        // (Ícono Apple si luego lo agregas)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Continuar con Apple",
-                            color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -200,7 +187,7 @@ fun WelcomeScreen(
             Text(
                 text = "Al hacer clic en continuar, aceptas nuestros Términos de Servicio y nuestra Política de Privacidad",
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = colors.onSurfaceVariant, // gris del tema
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
@@ -209,5 +196,21 @@ fun WelcomeScreen(
         }
     }
 
+}
+
+
+@Preview(showBackground = true, showSystemUi = true, name = "welcome – Light")
+@Composable
+private fun CreateProductPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        WelcomeScreen()
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "welcome – Dark")
+@Composable
+private fun CreateProductPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        WelcomeScreen()
     }
+}

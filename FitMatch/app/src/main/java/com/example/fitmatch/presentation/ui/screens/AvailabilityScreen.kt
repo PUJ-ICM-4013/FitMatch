@@ -1,13 +1,14 @@
 package com.example.fitmatch.presentation.ui.screens
 
-import android.R.attr.layout
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,64 +21,77 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.FitMatchTheme
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AvailabilityScreen(
     onSave: () -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
 
-    // Estado mock
-    var available by remember { mutableStateOf(true) }
-    var quickSlot by remember { mutableStateOf<QuickSlot?>(null) }
-    var startTime by remember { mutableStateOf("08:00 a. m.") }
-    var endTime by remember { mutableStateOf("08:00 p. m.") }
-
-
-
+    // usar saveable para no perder estado al rotar
+    var available by rememberSaveable { mutableStateOf(true) }
+    var quickSlot by rememberSaveable { mutableStateOf<QuickSlot?>(null) }
+    var startTime by rememberSaveable { mutableStateOf("08:00 a. m.") }
+    var endTime by rememberSaveable { mutableStateOf("08:00 p. m.") }
 
     Scaffold(
-        containerColor = colors.background
+        containerColor = colors.background,
+        topBar = {
+            // top bar sencillita; título centrado
+            CenterAlignedTopAppBar(
+                title = { Text("Disponibilidad", fontWeight = FontWeight.SemiBold) }
+                // TODO(uni): si hace falta back, poner navigationIcon con ArrowBack
+            )
+        }
     ) { inner ->
         Column(
             Modifier
                 .fillMaxSize()
-                .padding(inner)           // respeta la altura de la bottom bar global
+                .padding(inner)
                 .padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(8.dp))
 
-
+            // ── Estado general ────────────────────────────────────────────────────────
             Column(
                 Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // circulito de status
                 Box(
                     Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(if (available) Color(0xFF2ECC71) else colors.outline)
+                        // color suave para que no “tape” todo; si está activo, primario con alpha
+                        .background(
+                            if (available) colors.primary.copy(alpha = 0.22f)
+                            else colors.outline.copy(alpha = 0.25f)
+                        )
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    text = if (available) "¡Estás Disponible!" else "No estás disponible",
+                    text = if (available) "¡Estás disponible!" else "No estás disponible",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     textAlign = TextAlign.Center
                 )
+                // podríamos mostrar subtexto tipo “se mostrará en tu perfil” para dar contexto
             }
 
-            Divider(
+            HorizontalDivider(
                 Modifier
                     .padding(vertical = 12.dp)
                     .fillMaxWidth(),
-                color = colors.outline.copy(alpha = 0.3f)
+                DividerDefaults.Thickness, color = colors.outline.copy(alpha = 0.3f)
             )
 
-
+            // ── Card: Switch de disponibilidad ───────────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.surface),
-                elevation = CardDefaults.cardElevation(0.dp)
+                elevation = CardDefaults.cardElevation(0.dp),
+                border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.25f))
             ) {
                 Row(
                     Modifier
@@ -86,17 +100,18 @@ fun AvailabilityScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Estado de Disponibilidad",
+                        "Estado de disponibilidad",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.weight(1f))
+                    // botoncito de on/off
                     Switch(
                         checked = available,
                         onCheckedChange = { available = it },
                         colors = SwitchDefaults.colors(
                             checkedTrackColor = colors.primary,
-                            checkedThumbColor = Color.White,
-                            uncheckedThumbColor = Color.White
+                            checkedThumbColor = colors.onPrimary,
+                            uncheckedThumbColor = colors.surface
                         )
                     )
                 }
@@ -104,13 +119,13 @@ fun AvailabilityScreen(
 
             Spacer(Modifier.height(16.dp))
 
-
+            // ── Card: métrica del día (suave) ────────────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = colors.primary.copy(alpha = 0.10f)),
+                colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerHigh),
                 elevation = CardDefaults.cardElevation(0.dp),
-                border = CardDefaults.outlinedCardBorder(true)
+                border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.25f))
             ) {
                 Column(
                     Modifier
@@ -119,55 +134,60 @@ fun AvailabilityScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "Ganancias de Hoy",
+                        "Ganancias de hoy",
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
                         "$45.000 COP",
-                        style = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurface.copy(alpha = 0.8f))
+                        style = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurfaceVariant)
                     )
+                    // TODO(uni): traer esto del backend y formatear con locale
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
-
+            // ── Preferencias de horario ──────────────────────────────────────────────
             Text(
-                "Horarios Preferidos",
+                "Horarios preferidos",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
             )
             Spacer(Modifier.height(6.dp))
             Text(
-                "Horarios Rápidos",
-                style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurface.copy(alpha = 0.7f))
+                "Horarios rápidos",
+                style = MaterialTheme.typography.bodySmall.copy(color = colors.onSurfaceVariant)
             )
             Spacer(Modifier.height(10.dp))
 
-
+            // Pills con wrap (cuando tengamos Compose FlowRow estable, cambiarlo)
             FlowRowWrap(horizontalGap = 10.dp, verticalGap = 10.dp) {
                 QuickSlot.entries.forEach { slot ->
                     SelectablePill(
                         text = slot.label,
                         selected = quickSlot == slot,
-                        onClick = { quickSlot = if (quickSlot == slot) null else slot }
+                        onClick = {
+                            // botoncito: si ya está seleccionado, quitarlo; si no, ponerlo
+                            quickSlot = if (quickSlot == slot) null else slot
+                            // comentario: al tocar un quick slot, podríamos setear start/end automáticamente
+                        }
                     )
                 }
             }
 
             Spacer(Modifier.height(16.dp))
 
-
+            // ── Card: horario personalizado ─────────────────────────────────────────
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(0.dp),
-                border = CardDefaults.outlinedCardBorder(true)
+                border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.25f))
             ) {
                 Column(Modifier.fillMaxWidth().padding(16.dp)) {
                     Text(
-                        "Horario Personalizado",
+                        "Horario personalizado",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Spacer(Modifier.height(12.dp))
@@ -175,42 +195,58 @@ fun AvailabilityScreen(
                         Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TimePill(text = startTime, onClick = { /* TODO */ })
+                        TimePill(
+                            text = startTime,
+                            onClick = {
+                                // TODO(uni): abrir TimePicker (Material3) para seleccionar hora de inicio
+                            }
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text("—", style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.width(8.dp))
-                        TimePill(text = endTime, onClick = { /* TODO */ })
+                        TimePill(
+                            text = endTime,
+                            onClick = {
+                                // TODO(uni): abrir TimePicker (Material3) para seleccionar hora fin
+                            }
+                        )
                     }
+                    // comentario: validar que end > start; si no, mostrar error en rojo suave
                 }
             }
 
-
             Spacer(Modifier.height(20.dp))
+
+            // ── CTA Guardar ──────────────────────────────────────────────────────────
             Button(
                 onClick = onSave,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary
+                ),
+                enabled = true // comentario: deshabilitar si no hay cambios
             ) {
                 Text(
-                    "Guardar Horarios",
+                    "Guardar horarios",
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                 )
             }
-
 
             Spacer(Modifier.height(12.dp))
         }
     }
 }
 
-
+/* ────────────────────────────── Soportes UI ─────────────────────────────── */
 
 private enum class QuickSlot(val label: String) {
-    MANANA("Mañana (6-12)"),
-    TARDE("Tarde (12-18)"),
-    NOCHE("Noche (18-00)"),
+    MANANA("Mañana (6–12)"),
+    TARDE("Tarde (12–18)"),
+    NOCHE("Noche (18–00)"),
     TODO_DIA("Todo el día");
 }
 
@@ -234,6 +270,7 @@ private fun SelectablePill(text: String, selected: Boolean, onClick: () -> Unit)
             )
         )
     }
+    // comentario: si metemos muchos, poner opción “Limpiar” al final
 }
 
 @Composable
@@ -242,7 +279,7 @@ private fun TimePill(text: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = colors.primary.copy(alpha = 0.10f),
+        color = colors.primary.copy(alpha = 0.10f), // color así de suave para que no tape
         border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.6f))
     ) {
         Text(
@@ -251,9 +288,13 @@ private fun TimePill(text: String, onClick: () -> Unit) {
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
         )
     }
+    // botoncito: al tocar acá debería abrir el selector de hora (TimePicker)
 }
 
-
+/**
+ * Layout de flujo simple. Nota: cuando uses compose foundation reciente,
+ * se puede cambiar a androidx.compose.foundation.layout.FlowRow (menos código).
+ */
 @Composable
 private fun FlowRowWrap(
     horizontalGap: Dp = 8.dp,
@@ -263,7 +304,6 @@ private fun FlowRowWrap(
     Layout(content = content) { measurables, constraints ->
         val placeables = measurables.map { it.measure(constraints) }
         val maxWidth = constraints.maxWidth
-        var rowWidth = 0
         var rowHeight = 0
         var x = 0
         var y = 0
@@ -278,7 +318,6 @@ private fun FlowRowWrap(
             positions.add(x to y)
             x += p.width + horizontalGap.roundToPx()
             rowHeight = maxOf(rowHeight, p.height)
-            rowWidth = maxOf(rowWidth, x)
         }
 
         val totalHeight = y + rowHeight
@@ -291,7 +330,7 @@ private fun FlowRowWrap(
     }
 }
 
-
+/* ─────────────────────────────── Preview ────────────────────────────────── */
 
 @Preview(showBackground = true, showSystemUi = true, device = "id:pixel_6")
 @Composable

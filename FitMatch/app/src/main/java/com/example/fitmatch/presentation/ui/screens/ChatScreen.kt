@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,20 +15,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 
+// ----------------------------
+// Modelo
+// ----------------------------
 data class ChatMessage(
     val text: String,
     val isFromUser: Boolean,
     val timestamp: String = ""
 )
 
-@Preview(showBackground = true)
+// ----------------------------
+// Pantalla principal (sin @Preview aquí)
+// ----------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
@@ -37,35 +41,39 @@ fun ChatScreen(
     onCallClick: () -> Unit = {},
     onMoreClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
     var messageText by remember { mutableStateOf("") }
     var messages by remember {
-        mutableStateOf(listOf(
-            ChatMessage(
-                "Jean Azul Levis Talla S\n¡Has hecho match! Puedes chatear con el vendedor para contactar tu compra.",
-                false
-            ),
-            ChatMessage("Ah, sí?", false),
-            ChatMessage("Qué chulo", false),
-            ChatMessage("Cómo funciona?", false),
-            ChatMessage(
-                "Solo tienes que editar cualquier texto para escribir la conversación que quieras mostrar y borrar las burbujas que no quieras utilizar",
-                true
-            ),
-            ChatMessage("Mmm", false),
-            ChatMessage("Creo que lo entiendo", false),
-            ChatMessage("De todas formas míraré el Centro de ayuda si tengo más preguntas", false)
-        ))
+        mutableStateOf(
+            listOf(
+                ChatMessage(
+                    "Jean Azul Levis Talla S\n¡Has hecho match! Puedes chatear con el vendedor para contactar tu compra.",
+                    false
+                ),
+                ChatMessage("Ah, sí?", false),
+                ChatMessage("Qué chulo", false),
+                ChatMessage("Cómo funciona?", false),
+                ChatMessage(
+                    "Solo tienes que editar cualquier texto para escribir la conversación que quieras mostrar y borrar las burbujas que no quieras utilizar",
+                    true
+                ),
+                ChatMessage("Mmm", false),
+                ChatMessage("Creo que lo entiendo", false),
+                ChatMessage("De todas formas míraré el Centro de ayuda si tengo más preguntas", false)
+            )
+        )
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background)
     ) {
         // Header del chat
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
+            color = colors.surface,
             shadowElevation = 4.dp
         ) {
             Row(
@@ -76,9 +84,9 @@ fun ChatScreen(
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.onSurface
                     )
                 }
 
@@ -91,16 +99,15 @@ fun ChatScreen(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray.copy(alpha = 0.3f))
+                            .background(colors.surfaceVariant)
                     ) {
-                        // Aquí iría la imagen del contacto
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(8.dp),
-                            tint = Color.Gray
+                            tint = colors.onSurfaceVariant
                         )
                     }
 
@@ -111,12 +118,12 @@ fun ChatScreen(
                             text = contactName,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                         Text(
                             text = contactSubtitle,
                             fontSize = 12.sp,
-                            color = Color.Gray
+                            color = colors.onSurfaceVariant
                         )
                     }
                 }
@@ -126,7 +133,7 @@ fun ChatScreen(
                     Icon(
                         imageVector = Icons.Default.Phone,
                         contentDescription = "Llamar",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
 
@@ -134,24 +141,24 @@ fun ChatScreen(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Más opciones",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
             }
         }
 
-        // Mensaje de match
+        // Mensaje/banner superior (informativo)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFFFF3CD))
+                .background(colors.secondaryContainer)
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Esta es la pantalla principal de chat",
                 fontSize = 12.sp,
-                color = Color(0xFF856404),
+                color = colors.onSecondaryContainer,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -175,7 +182,7 @@ fun ChatScreen(
         // Campo de entrada de mensaje
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
+            color = colors.surface,
             shadowElevation = 8.dp
         ) {
             Row(
@@ -187,55 +194,51 @@ fun ChatScreen(
                 OutlinedTextField(
                     value = messageText,
                     onValueChange = { messageText = it },
-                    placeholder = { Text("Mensaje...") },
+                    placeholder = { Text("Mensaje...", color = colors.onSurfaceVariant) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF8B4513),
-                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        cursorColor = colors.primary,
+                        focusedContainerColor = colors.surface,
+                        unfocusedContainerColor = colors.surface,
+                        focusedTextColor = colors.onSurface,
+                        unfocusedTextColor = colors.onSurface
                     ),
                     shape = RoundedCornerShape(25.dp)
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Botones de acción
-                IconButton(
-                    onClick = { /* Acción del micrófono */ }
-                ) {
+                IconButton(onClick = { /* mic */ }) {
                     Icon(
                         imageVector = Icons.Default.Mic,
                         contentDescription = "Mensaje de voz",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
 
-                IconButton(
-                    onClick = { /* Acción de emoji */ }
-                ) {
+                IconButton(onClick = { /* emoji */ }) {
                     Icon(
                         imageVector = Icons.Default.EmojiEmotions,
                         contentDescription = "Emojis",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
 
-                IconButton(
-                    onClick = { /* Acción de imagen */ }
-                ) {
+                IconButton(onClick = { /* imagen */ }) {
                     Icon(
                         imageVector = Icons.Default.Image,
                         contentDescription = "Enviar imagen",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
 
-                IconButton(
-                    onClick = { /* Acción de ubicación */ }
-                ) {
+                IconButton(onClick = { /* ubicación */ }) {
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Enviar ubicación",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.primary
                     )
                 }
             }
@@ -243,11 +246,16 @@ fun ChatScreen(
     }
 }
 
+// ----------------------------
+// Burbuja de mensaje
+// ----------------------------
 @Composable
 private fun MessageBubble(
     message: ChatMessage,
     isFromUser: Boolean
 ) {
+    val colors = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (isFromUser) Arrangement.End else Arrangement.Start
@@ -258,7 +266,7 @@ private fun MessageBubble(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Color.Gray.copy(alpha = 0.3f))
+                    .background(colors.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -266,7 +274,7 @@ private fun MessageBubble(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(4.dp),
-                    tint = Color.Gray
+                    tint = colors.onSurfaceVariant
                 )
             }
 
@@ -277,8 +285,7 @@ private fun MessageBubble(
         Card(
             modifier = Modifier.widthIn(max = 280.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (isFromUser)
-                    Color(0xFF8B4513) else Color.White
+                containerColor = if (isFromUser) colors.primary else colors.surface
             ),
             shape = RoundedCornerShape(
                 topStart = 16.dp,
@@ -291,7 +298,7 @@ private fun MessageBubble(
             Text(
                 text = message.text,
                 modifier = Modifier.padding(12.dp),
-                color = if (isFromUser) Color.White else Color.Black,
+                color = if (isFromUser) colors.onPrimary else colors.onSurface,
                 fontSize = 14.sp
             )
         }
@@ -304,7 +311,7 @@ private fun MessageBubble(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF8B4513).copy(alpha = 0.3f))
+                    .background(colors.primaryContainer)
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
@@ -312,9 +319,27 @@ private fun MessageBubble(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(4.dp),
-                    tint = Color(0xFF8B4513)
+                    tint = colors.primary
                 )
             }
         }
+    }
+}
+
+
+// Previews con el tema
+@Preview(showBackground = true, name = "Chat – Light (Brand)")
+@Composable
+private fun ChatPreviewLight() {
+    com.example.compose.FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        ChatScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Chat – Dark (Brand)")
+@Composable
+private fun ChatPreviewDark() {
+    com.example.compose.FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        ChatScreen()
     }
 }

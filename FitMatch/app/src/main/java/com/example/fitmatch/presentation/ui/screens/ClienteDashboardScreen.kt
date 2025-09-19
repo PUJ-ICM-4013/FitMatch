@@ -1,5 +1,6 @@
 package com.example.fitmatch.presentation.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
@@ -15,18 +17,19 @@ import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-//import androidx.compose.material3.assistChipColors
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,11 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.FitMatchTheme
 
-
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CLienteDashboardScreen(
+fun ClienteDashboardScreen(
     modifier: Modifier = Modifier,
     onMenuClick: () -> Unit = {},
     onBookmarkClick: () -> Unit = {},
@@ -48,13 +49,14 @@ fun CLienteDashboardScreen(
 
     var incognito by remember { mutableStateOf(true) }
 
-
+    // ✅ Antes: grises hardcodeados. Ahora: colores del tema para que respeten FitMatchTheme (claro/oscuro).
     val pages = listOf(
-        Color(0xFFBDBDBD), // gris claro
-        Color(0xFF9E9E9E),
-        Color(0xFF757575),
-        Color(0xFFBDBDBD)
+        colors.primaryContainer,
+        colors.secondaryContainer,
+        colors.tertiaryContainer,
+        colors.surfaceVariant
     )
+
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
     Column(
@@ -62,7 +64,6 @@ fun CLienteDashboardScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-
         Row(
             Modifier
                 .fillMaxWidth()
@@ -70,7 +71,12 @@ fun CLienteDashboardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onMenuClick) {
-                Icon(Icons.Default.List, contentDescription = "Menú")
+                // ✅ Aseguramos el tint desde el tema
+                Icon(
+                    Icons.AutoMirrored.Filled.List,
+                    contentDescription = "Menú",
+                    tint = colors.onBackground
+                )
             }
             Spacer(Modifier.weight(1f))
             FilterChip(
@@ -79,7 +85,6 @@ fun CLienteDashboardScreen(
                 label = { Text("Modo incógnito") }
             )
         }
-
 
         Box(
             Modifier
@@ -99,7 +104,6 @@ fun CLienteDashboardScreen(
                         .background(pages[page])
                 )
             }
-
 
             Row(
                 Modifier
@@ -123,13 +127,12 @@ fun CLienteDashboardScreen(
                 }
             }
 
-
             Column(
                 Modifier
                     .align(Alignment.BottomStart)
                     .fillMaxWidth()
                     .background(
-                        // Deja una leve superposición para que el texto siempre se lea
+                        // ✅ Gradiente con tokens del tema (mantengo Transparent)
                         Brush.verticalGradient(
                             0f to Color.Transparent,
                             0.3f to colors.surface.copy(alpha = 0.65f),
@@ -157,7 +160,6 @@ fun CLienteDashboardScreen(
                     )
                 )
                 Spacer(Modifier.height(8.dp))
-
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TagChip("XS")
@@ -189,7 +191,6 @@ fun CLienteDashboardScreen(
 
         Spacer(Modifier.height(12.dp))
 
-
         Row(
             Modifier
                 .fillMaxWidth()
@@ -209,12 +210,9 @@ fun CLienteDashboardScreen(
             )
         }
 
-        // (Opcional) Empuja contenido para simular bottom bar propia si la pantalla lo requiere
         Spacer(Modifier.height(16.dp))
     }
 }
-
-
 
 @Composable
 private fun TagChip(text: String) {
@@ -235,37 +233,28 @@ private fun TagChip(text: String) {
 
 @Composable
 private fun BigCircleAction(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     contentDesc: String,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    Surface(
+    OutlinedIconButton(
+        onClick = onClick,
         modifier = Modifier.size(72.dp),
         shape = CircleShape,
-        color = colors.surface,
-        tonalElevation = 2.dp,
-        shadowElevation = 4.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.outline.copy(alpha = 0.25f))
+        border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.25f))
     ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .clip(CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = contentDesc, tint = colors.onSurface, modifier = Modifier.size(36.dp))
-        }
+        Icon(icon, contentDescription = contentDesc, tint = colors.onSurface, modifier = Modifier.size(36.dp))
     }
 }
+
 @Preview(
     showBackground = true,
     showSystemUi = true,
-    device = "id:pixel_6"
 )
 @Composable
 fun ClienteDashboardScreenPreview() {
     FitMatchTheme {
-        CLienteDashboardScreen()
+        ClienteDashboardScreen()
     }
 }
