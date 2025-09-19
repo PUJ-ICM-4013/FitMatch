@@ -1,5 +1,6 @@
 package com.example.fitmatch.presentation.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -9,17 +10,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
 data class ProductStatus(
     val id: String,
@@ -41,11 +43,12 @@ data class MyProduct(
 
 data class ProductAction(
     val name: String,
-    val backgroundColor: Color,
-    val textColor: Color = Color.White
+    val containerColor: androidx.compose.ui.graphics.Color,
+    val contentColor: androidx.compose.ui.graphics.Color
 )
 
-@Preview(showBackground = true)
+/* ---------------------------------- Screen --------------------------------- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyProductsScreen(
@@ -53,13 +56,27 @@ fun MyProductsScreen(
     onAddProductClick: () -> Unit = {},
     onProductActionClick: (String, String) -> Unit = { _, _ -> }
 ) {
-    var selectedStatus by remember { mutableStateOf("todos") }
+    val colors = MaterialTheme.colorScheme
+    var selectedStatus by rememberSaveable { mutableStateOf("todos") }
 
     val statusFilters = listOf(
         ProductStatus("todos", "Todos", selectedStatus == "todos"),
         ProductStatus("publicados", "Publicados", selectedStatus == "publicados"),
-        ProductStatus("borradores", "Borradores", selectedStatus == "borradores"),)
+        ProductStatus("borradores", "Borradores", selectedStatus == "borradores")
+    )
 
+    // Acciones mapeadas a tu tema (sin hardcodes marrones)
+    val productActions = remember(colors) {
+        listOf(
+            ProductAction("Editar",    colors.secondaryContainer, colors.onSecondaryContainer),
+            ProductAction("Pausar",    colors.tertiaryContainer,  colors.onTertiaryContainer),
+            ProductAction("Duplicar",  colors.surfaceVariant,     colors.onSurfaceVariant),
+            ProductAction("Variantes", colors.primaryContainer,   colors.onPrimaryContainer),
+            ProductAction("Eliminar",  colors.errorContainer,     colors.onErrorContainer)
+        )
+    }
+
+    // Mock data (igual que tu ejemplo)
     val products = listOf(
         MyProduct(
             id = "1",
@@ -83,23 +100,16 @@ fun MyProductsScreen(
         )
     )
 
-    val productActions = listOf(
-        ProductAction("Editar", Color(0xFF8B4513)),
-        ProductAction("Pausar", Color(0xFF8B4513)),
-        ProductAction("Duplicar", Color(0xFF8B4513)),
-        ProductAction("Variantes", Color(0xFF8B4513)),
-        ProductAction("Eliminar", Color(0xFF8B4513))
-    )
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background)
     ) {
-        // Header
+        /* ------------------------------- Top Bar ------------------------------ */
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = Color.White,
+            color = colors.surface,
+            tonalElevation = 1.dp,
             shadowElevation = 1.dp
         ) {
             Row(
@@ -113,28 +123,29 @@ fun MyProductsScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Color.Black
+                        tint = colors.onSurface
                     )
                 }
 
                 Text(
                     text = "Mis Productos",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onSurface
+                    )
                 )
 
                 IconButton(onClick = onAddProductClick) {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = Icons.Filled.Add,
                         contentDescription = "Agregar producto",
-                        tint = Color.Black
+                        tint = colors.onSurface
                     )
                 }
             }
         }
 
-        // Filtros de estado
+        /* ------------------------------ Filtros ------------------------------- */
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
@@ -147,13 +158,14 @@ fun MyProductsScreen(
             }
         }
 
-        // Lista de productos
+        /* --------------------------- Lista productos -------------------------- */
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(products) { product ->
+            items(products.size) { idx ->
+                val product = products[idx]
                 ProductCard(
                     product = product,
                     actions = productActions,
@@ -166,19 +178,23 @@ fun MyProductsScreen(
     }
 }
 
+/* --------------------------------- Chips ---------------------------------- */
+
 @Composable
 private fun StatusFilterChip(
     status: ProductStatus,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Surface(
         onClick = onClick,
         modifier = Modifier.height(36.dp),
-        color = if (status.isSelected) Color(0xFF8B4513) else Color.White,
+        color = if (status.isSelected) colors.primary.copy(alpha = 0.16f) else colors.surface,
         shape = RoundedCornerShape(18.dp),
-        border = if (!status.isSelected) {
-            androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f))
-        } else null
+        border = if (status.isSelected)
+            BorderStroke(1.dp, colors.primary)
+        else
+            BorderStroke(1.dp, colors.outlineVariant)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -186,13 +202,16 @@ private fun StatusFilterChip(
         ) {
             Text(
                 text = status.name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (status.isSelected) Color.White else Color.Black
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = if (status.isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = colors.onSurface
+                )
             )
         }
     }
 }
+
+/* --------------------------------- Card ----------------------------------- */
 
 @Composable
 private fun ProductCard(
@@ -200,57 +219,44 @@ private fun ProductCard(
     actions: List<ProductAction>,
     onActionClick: (String) -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(16.dp)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .then(
                 if (product.hasSpecialBorder) {
-                    Modifier.border(
-                        2.dp,
-                        Color(0xFF2196F3),
-                        RoundedCornerShape(16.dp)
-                    )
+                    Modifier.border(2.dp, colors.primary, shape)
                 } else {
-                    Modifier
+                    Modifier.border(1.dp, colors.outlineVariant, shape)
                 }
             ),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
+        shape = shape,
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // Imagen placeholder
+        Column(Modifier.padding(16.dp)) {
+            Row(Modifier.fillMaxWidth()) {
+                // Placeholder imagen
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .background(
-                            Color.Gray.copy(alpha = 0.2f),
-                            RoundedCornerShape(8.dp)
-                        ),
+                        .background(colors.surfaceVariant, RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     if (product.imageSize != null) {
-                        // Mostrar dimensiones de imagen
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.Image,
                                 contentDescription = "Imagen",
-                                tint = Color.Gray,
-                                modifier = Modifier.size(24.dp)
+                                tint = colors.onSurfaceVariant
                             )
                             Text(
                                 text = product.imageSize,
-                                fontSize = 8.sp,
-                                color = Color.Gray,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = colors.onSurfaceVariant
+                                ),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -258,158 +264,112 @@ private fun ProductCard(
                         Icon(
                             imageVector = Icons.Default.Image,
                             contentDescription = "Imagen del producto",
-                            tint = Color.Gray,
-                            modifier = Modifier.size(32.dp)
+                            tint = colors.onSurfaceVariant
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(Modifier.width(12.dp))
 
-                // Información del producto
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                // Info
+                Column(Modifier.weight(1f)) {
                     Text(
                         text = product.title,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = colors.onSurface
+                        )
                     )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = product.subtitle,
-                        fontSize = 12.sp,
-                        color = Color.Gray
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = colors.onSurfaceVariant
+                        )
                     )
+                    Spacer(Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Badge de estado
+                    // Badge de estado (usa primaryContainer para que no “tape” el texto)
+                    val (badgeBg, badgeFg) = when (product.status.lowercase()) {
+                        "publicado" -> colors.primaryContainer to colors.onPrimaryContainer
+                        "borrador"  -> colors.surfaceVariant to colors.onSurfaceVariant
+                        "pausado"   -> colors.tertiaryContainer to colors.onTertiaryContainer
+                        else        -> colors.secondaryContainer to colors.onSecondaryContainer
+                    }
                     Surface(
-                        color = Color(0xFF8B4513),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.wrapContentWidth()
+                        color = badgeBg,
+                        contentColor = badgeFg,
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = product.status,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Medium
+                            ),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Métricas del producto
+            // Métricas
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = product.stock.toString(),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "Stock",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = product.price,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "Precio",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = product.soldQuantity.toString(),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Text(
-                        text = "Vendidos",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                }
+                Metric(label = "Stock", value = product.stock.toString())
+                Metric(label = "Precio", value = product.price)
+                Metric(label = "Vendidos", value = product.soldQuantity.toString())
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Botones de acciones
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Primera fila de botones
+            // Acciones (2 filas)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ActionButton(
-                        action = actions[0], // Editar
-                        modifier = Modifier.weight(1f),
-                        onClick = { onActionClick(actions[0].name) }
-                    )
-                    ActionButton(
-                        action = actions[1], // Pausar
-                        modifier = Modifier.weight(1f),
-                        onClick = { onActionClick(actions[1].name) }
-                    )
-                    ActionButton(
-                        action = actions[2], // Duplicar
-                        modifier = Modifier.weight(1f),
-                        onClick = { onActionClick(actions[2].name) }
-                    )
+                    ActionButton(actions[0], Modifier.weight(1f)) { onActionClick(actions[0].name) }
+                    ActionButton(actions[1], Modifier.weight(1f)) { onActionClick(actions[1].name) }
+                    ActionButton(actions[2], Modifier.weight(1f)) { onActionClick(actions[2].name) }
                 }
-
-                // Segunda fila de botones
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    ActionButton(
-                        action = actions[3], // Variantes
-                        modifier = Modifier.weight(1f),
-                        onClick = { onActionClick(actions[3].name) }
-                    )
-                    ActionButton(
-                        action = actions[4], // Eliminar
-                        modifier = Modifier.weight(1f),
-                        onClick = { onActionClick(actions[4].name) }
-                    )
-                    // Spacer para mantener el layout
-                    Spacer(modifier = Modifier.weight(1f))
+                    ActionButton(actions[3], Modifier.weight(1f)) { onActionClick(actions[3].name) }
+                    ActionButton(actions[4], Modifier.weight(1f)) { onActionClick(actions[4].name) }
+                    Spacer(Modifier.weight(1f)) // mantiene el grid 3 columnas
                 }
             }
         }
     }
 }
+
+@Composable
+private fun Metric(label: String, value: String) {
+    val colors = MaterialTheme.colorScheme
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = colors.onSurface
+            )
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(
+                color = colors.onSurfaceVariant
+            )
+        )
+    }
+}
+
+/* ------------------------------ Action Button ------------------------------ */
 
 @Composable
 private fun ActionButton(
@@ -421,16 +381,33 @@ private fun ActionButton(
         onClick = onClick,
         modifier = modifier.height(32.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = action.backgroundColor
+            containerColor = action.containerColor,
+            contentColor = action.contentColor
         ),
         shape = RoundedCornerShape(16.dp),
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Text(
             text = action.name,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Medium,
-            color = action.textColor
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
         )
+    }
+}
+
+// preview con el theme
+
+@Preview(showBackground = true, showSystemUi = true, name = "MyProducts – Light")
+@Composable
+private fun MyProductsScreenPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        MyProductsScreen()
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "MyProducts – Dark")
+@Composable
+private fun MyProductsScreenPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        MyProductsScreen()
     }
 }

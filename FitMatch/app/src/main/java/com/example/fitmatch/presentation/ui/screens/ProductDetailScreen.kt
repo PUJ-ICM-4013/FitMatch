@@ -14,12 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
 data class ProductDetail(
     val title: String,
@@ -38,12 +38,12 @@ data class ProductDetail(
 
 data class DetailSection(
     val title: String,
-    val icon: ImageVector,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val isExpandable: Boolean = false,
     val content: String = ""
 )
 
-@Preview(showBackground = true)
+// ⚠️ Los previews van al final envueltos en FitMatchTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetailScreen(
@@ -51,18 +51,20 @@ fun ProductDetailScreen(
     onMoreClick: () -> Unit = {},
     onBuyClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
     val productDetail = ProductDetail(
         title = "Pantalón Blanco",
-        originalPrice = "$300,000",
+        originalPrice = "$380,000",
         currentPrice = "$300,000",
-        isOnSale = false,
-        brand = "Jeans",
-        size = "XS 30 US 42 EU",
+        isOnSale = true,
+        brand = "Levi's",
+        size = "XS / 30 US / 42 EU",
         category = "Jeans",
         condition = "En perfecto estado",
-        color = "Negro",
-        mascotMessage = "Tito cree que esta prenda es apropiada para ti!",
-        sellerName = "Planeta vintage"
+        color = "Blanco",
+        mascotMessage = "Tito cree que esta prenda es perfecta para tu estilo ✨",
+        sellerName = "Planeta Vintage"
     )
 
     val detailSections = listOf(
@@ -71,22 +73,23 @@ fun ProductDetailScreen(
         DetailSection("Categoría", Icons.Default.Category),
         DetailSection("Estado", Icons.Default.Star),
         DetailSection("Color", Icons.Default.Palette),
-        DetailSection("Guía de Tallas", Icons.Default.Straighten, true),
-        DetailSection("Materiales", Icons.Default.Texture, true),
-        DetailSection("Estimación de envío", Icons.Default.LocalShipping, true),
-        DetailSection("Políticas de Protección", Icons.Default.Security, true)
+        DetailSection("Guía de Tallas", Icons.Default.Straighten, isExpandable = true),
+        DetailSection("Materiales", Icons.Default.Texture, isExpandable = true),
+        DetailSection("Estimación de envío", Icons.Default.LocalShipping, isExpandable = true),
+        DetailSection("Políticas de Protección", Icons.Default.Security, isExpandable = true)
     )
 
+    // Nota estudiante: si después metemos galería con pager, mover a Scaffold y usar TopAppBar/BottomAppBar del tema
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background)
     ) {
         item {
             // Header
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = colors.surface,
                 shadowElevation = 2.dp
             ) {
                 Row(
@@ -100,7 +103,7 @@ fun ProductDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color(0xFF8B4513)
+                            tint = colors.onSurface
                         )
                     }
 
@@ -108,118 +111,133 @@ fun ProductDetailScreen(
                         text = "Detalles",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = colors.onSurface
                     )
 
-                    IconButton(onClick = onMoreClick) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = "Más opciones",
-                            tint = Color(0xFF8B4513)
-                        )
+                    Row {
+                        // botoncito compartir (útil para viralidad)
+                        IconButton(onClick = onMoreClick /* TODO: share */) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Compartir",
+                                tint = colors.onSurface
+                            )
+                        }
+                        IconButton(onClick = onMoreClick) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Más opciones",
+                                tint = colors.onSurface
+                            )
+                        }
                     }
                 }
             }
         }
 
         item {
-            // Espacio para imagen del producto (placeholder)
+            // Placeholder imagen del producto
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
-                    .background(Color.Gray.copy(alpha = 0.2f)),
+                    .background(colors.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Imagen del Producto",
-                    color = Color.Gray,
+                    color = colors.onSurfaceVariant,
                     fontSize = 16.sp
                 )
+                // Nota estudiante: aquí va un pager con zoom y miniaturas abajo (UX top)
             }
         }
 
         item {
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
                 Text(
                     text = productDetail.title,
-                    fontSize = 20.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = colors.onSurface
                 )
+                // Nota estudiante: añadir chipcitos de estado (Nuevo/Usado) y categoría, usando secondaryContainer
             }
         }
 
         item {
-            // Información del vendedor y precio
+            // Vendedor + precio + mensajito de Tito
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                    .padding(horizontal = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    // Información del vendedor
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Colección René Risco",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = colors.onSurfaceVariant
                     )
-
                     Text(
                         text = productDetail.sellerName,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = colors.onSurface
                     )
-
                     Text(
-                        text = "Cerca: 9.6k - En perfecto estado",
+                        text = "Cerca: 9.6k • ${productDetail.condition}",
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = colors.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Precio
-                    Text(
-                        text = productDetail.currentPrice,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
+                    // Precios (mostrar tachado si hay oferta)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = productDetail.currentPrice,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.onSurface
+                        )
+                        if (productDetail.isOnSale) {
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = productDetail.originalPrice,
+                                fontSize = 14.sp,
+                                color = colors.onSurfaceVariant,
+                                textDecoration = TextDecoration.LineThrough
+                            )
+                            // Nota estudiante: poner badge -% con error/onError si quieres más punch
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Mascota mensaje
+                    // Mensaje de Tito
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Espacio para mascota FitMatch
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF8B4513).copy(alpha = 0.1f)),
+                                .background(colors.primary.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "🐶",
-                                fontSize = 20.sp
-                            )
+                            Text(text = "🐶", fontSize = 20.sp)
                         }
-
                         Spacer(modifier = Modifier.width(12.dp))
-
                         Text(
                             text = productDetail.mascotMessage,
                             fontSize = 14.sp,
-                            color = Color(0xFF8B4513),
+                            color = colors.primary,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -232,23 +250,20 @@ fun ProductDetailScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     detailSections.forEachIndexed { index, section ->
                         DetailSectionItem(
                             section = section,
                             productDetail = productDetail
                         )
-
                         if (index < detailSections.size - 1) {
                             HorizontalDivider(
-                                color = Color.Gray.copy(alpha = 0.2f),
+                                color = colors.outlineVariant,
                                 thickness = 1.dp,
                                 modifier = Modifier.padding(vertical = 12.dp)
                             )
@@ -258,9 +273,7 @@ fun ProductDetailScreen(
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(100.dp)) // Espacio para el botón flotante
-        }
+        item { Spacer(modifier = Modifier.height(100.dp)) } // espacio para el botón flotante
     }
 
     // Botón de compra flotante
@@ -272,7 +285,7 @@ fun ProductDetailScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            color = Color.Transparent
+            color = colors.surface.copy(alpha = 0f) // transparente
         ) {
             Button(
                 onClick = onBuyClick,
@@ -280,13 +293,13 @@ fun ProductDetailScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B4513)
+                    containerColor = colors.primary
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
                 Text(
                     text = "Comprar",
-                    color = Color.White,
+                    color = colors.onPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -300,8 +313,10 @@ private fun DetailSectionItem(
     section: DetailSection,
     productDetail: ProductDetail
 ) {
+    val colors = MaterialTheme.colorScheme
+
     val content = when (section.title) {
-        "Descripción y detalles" -> ""
+        "Descripción y detalles" -> "Prenda original, sin manchas ni roturas. Corte recto, tiro medio."
         "Talla" -> productDetail.size
         "Categoría" -> productDetail.category
         "Estado" -> productDetail.condition
@@ -312,29 +327,25 @@ private fun DetailSectionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = section.isExpandable) { /* Handle click */ }
+            .clickable(enabled = section.isExpandable) { /* TODO: expandir/cerrar */ }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icono
         Icon(
             imageVector = section.icon,
             contentDescription = null,
-            tint = Color(0xFF8B4513),
+            tint = colors.primary, // iconito de marca
             modifier = Modifier.size(20.dp)
         )
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Contenido
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = section.title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = colors.onSurface
             )
 
             if (content.isNotEmpty()) {
@@ -342,19 +353,38 @@ private fun DetailSectionItem(
                 Text(
                     text = content,
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = colors.onSurfaceVariant
                 )
             }
         }
 
-        // Icono de expansión para secciones expandibles
         if (section.isExpandable) {
+            // botoncito para desplegar (luego cambiar por animación + contenido)
             Icon(
-                imageVector = Icons.Default.Add,
+                imageVector = Icons.Default.ChevronRight,
                 contentDescription = "Expandir",
-                tint = Color.Gray,
-                modifier = Modifier.size(16.dp)
+                tint = colors.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
             )
         }
+    }
+}
+
+// ==========================
+// Previews con tu tema (dynamicColor = false)
+// ==========================
+@Preview(showBackground = true, name = "Product Detail – Light (Brand)")
+@Composable
+private fun ProductDetailPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        ProductDetailScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Product Detail – Dark (Brand)")
+@Composable
+private fun ProductDetailPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        ProductDetailScreen()
     }
 }

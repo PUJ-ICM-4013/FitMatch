@@ -9,30 +9,34 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
+// Nota estudiante: renombré este data class para no chocar con el composable Material3 FilterChip
 data class FilterCategory(
     val id: String,
     val name: String,
     val isSelected: Boolean = false
 )
 
-data class FilterChip(
+data class FilterTag(
     val id: String,
     val name: String,
-    val color: Color,
-    val textColor: Color = Color.White
+    // Nota estudiante: estos se usan SOLO para la sección “Colores”.
+    // Para “Estilos/Prendas” usamos tokens del tema en el UI, no estos campos.
+    val colorArgb: Int? = null,           // ej. 0xFF2196F3 (azul)
+    val textColorArgb: Int? = null        // ej. 0xFFFFFFFF
 )
 
 data class PriceRange(
@@ -40,60 +44,72 @@ data class PriceRange(
     val max: String
 )
 
-@Preview(showBackground = true)
+// ⚠️ Sin @Preview aquí. Los previews van al final envueltos en FitMatchTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit = {},
     onSearchClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
     var searchText by remember { mutableStateOf("") }
 
     // Categorías principales
-    val categories = listOf(
-        FilterCategory("todos", "Todos", true),
-        FilterCategory("tiendas", "Tiendas"),
-        FilterCategory("productos", "Productos"),
-        FilterCategory("hashtags", "Hashtags")
-    )
+    val categories = remember {
+        listOf(
+            FilterCategory("todos", "Todos", true),
+            FilterCategory("tiendas", "Tiendas"),
+            FilterCategory("productos", "Productos"),
+            FilterCategory("hashtags", "Hashtags")
+        )
+    }
 
-    // Filtros avanzados - Estilos
-    val styleFilters = listOf(
-        FilterChip("casual", "Casual", Color(0xFF8B4513)),
-        FilterChip("elegante", "Elegante", Color(0xFF8B4513)),
-        FilterChip("deportivo", "Deportivo", Color(0xFF8B4513))
-    )
+    // Filtros avanzados - Estilos (usaremos tokens del tema en el chip, no color fijo)
+    val styleFilters = remember {
+        listOf(
+            FilterTag("casual", "Casual"),
+            FilterTag("elegante", "Elegante"),
+            FilterTag("deportivo", "Deportivo")
+        )
+    }
 
-    // Filtros - Tipo de prenda
-    val clothingFilters = listOf(
-        FilterChip("abrigos", "Abrigos", Color(0xFF8B4513)),
-        FilterChip("vestidos", "Vestidos", Color(0xFF8B4513)),
-        FilterChip("zapatos", "Zapatos", Color(0xFF8B4513)),
-        FilterChip("jeans", "Jeans", Color(0xFF8B4513))
-    )
+    // Filtros - Tipo de prenda (tokens del tema)
+    val clothingFilters = remember {
+        listOf(
+            FilterTag("abrigos", "Abrigos"),
+            FilterTag("vestidos", "Vestidos"),
+            FilterTag("zapatos", "Zapatos"),
+            FilterTag("jeans", "Jeans")
+        )
+    }
 
-    // Filtros - Colores
-    val colorFilters = listOf(
-        FilterChip("azul", "Azul", Color(0xFF2196F3)),
-        FilterChip("negro", "Negro", Color(0xFF424242)),
-        FilterChip("rojo", "Rojo", Color(0xFFF44336)),
-        FilterChip("blanco", "Blanco", Color(0xFFF5F5F5), Color.Black)
-    )
+    // Filtros - Colores (estos sí necesitan color explícito porque representan el color en sí)
+    val colorFilters = remember {
+        listOf(
+            FilterTag("azul", "Azul", 0xFF2196F3.toInt()),
+            FilterTag("negro", "Negro", 0xFF424242.toInt()),
+            FilterTag("rojo", "Rojo", 0xFFF44336.toInt()),
+            FilterTag("blanco", "Blanco", 0xFFF5F5F5.toInt(), 0xFF000000.toInt())
+        )
+    }
 
     // Rangos de precio
-    val priceRanges = listOf(
-        PriceRange("Hasta $20.000", ""),
-        PriceRange("Hasta $40.000", ""),
-        PriceRange("Hasta $70.000", ""),
-        PriceRange("Hasta $100.000", ""),
-        PriceRange("Hasta $150.000", ""),
-        PriceRange("Hasta $300.000", "")
-    )
+    val priceRanges = remember {
+        listOf(
+            PriceRange("Hasta $20.000", ""),
+            PriceRange("Hasta $40.000", ""),
+            PriceRange("Hasta $70.000", ""),
+            PriceRange("Hasta $100.000", ""),
+            PriceRange("Hasta $150.000", ""),
+            PriceRange("Hasta $300.000", "")
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colors.background)
     ) {
         item {
             // Header con búsqueda
@@ -111,46 +127,58 @@ fun SearchScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.Black
+                            tint = colors.onSurface
                         )
                     }
 
                     OutlinedTextField(
                         value = searchText,
                         onValueChange = { searchText = it },
-                        placeholder = { Text("Escribe aquí...", color = Color.Gray) },
+                        placeholder = { Text("Escribe aquí...", color = colors.onSurfaceVariant) },
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Gray,
-                            unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f),
-                            cursorColor = Color(0xFF8B4513)
+                            focusedBorderColor = colors.primary,
+                            unfocusedBorderColor = colors.outline,
+                            cursorColor = colors.primary,
+                            focusedContainerColor = colors.surface,
+                            unfocusedContainerColor = colors.surface,
+                            focusedTextColor = colors.onSurface,
+                            unfocusedTextColor = colors.onSurface
                         ),
                         shape = RoundedCornerShape(12.dp),
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Buscar",
-                                tint = Color.Gray
+                                tint = colors.onSurfaceVariant
                             )
+                        },
+                        // Nota estudiante: “botoncito” para disparar la búsqueda sin teclado
+                        trailingIcon = {
+                            IconButton(onClick = { onSearchClick() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = "Buscar",
+                                    tint = colors.primary
+                                )
+                            }
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                     )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
+                    // Nota estudiante: este “+” abre modal para filtros avanzados o guardados
                     IconButton(
-                        onClick = { /* Handle add */ },
+                        onClick = { /* TODO: abrir modal filtros guardados */ },
                         modifier = Modifier
                             .size(48.dp)
-                            .background(
-                                Color(0xFFE8E8E8),
-                                RoundedCornerShape(12.dp)
-                            )
+                            .background(colors.surfaceContainerHigh, RoundedCornerShape(12.dp))
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Añadir",
-                            tint = Color.Black
+                            tint = colors.onSurface
                         )
                     }
                 }
@@ -164,7 +192,7 @@ fun SearchScreen(
                     items(categories) { category ->
                         FilterCategoryChip(
                             category = category,
-                            onClick = { /* Handle category selection */ }
+                            onClick = { /* TODO: cambiar categoría y refrescar lista */ }
                         )
                     }
                 }
@@ -182,7 +210,7 @@ fun SearchScreen(
                     text = "Filtros Avanzados",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
@@ -191,7 +219,7 @@ fun SearchScreen(
                     text = "Estilos",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -200,9 +228,10 @@ fun SearchScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     items(styleFilters) { filter ->
-                        FilterChipItem(
-                            filter = filter,
-                            onClick = { /* Handle filter */ }
+                        // Nota estudiante: usar primaryContainer/onPrimaryContainer para que no “tape” tanto
+                        FilterTagChipThemed(
+                            label = filter.name,
+                            onClick = { /* TODO: aplicar filtro */ }
                         )
                     }
                 }
@@ -212,7 +241,7 @@ fun SearchScreen(
                     text = "Tipo de prenda",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -221,9 +250,9 @@ fun SearchScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     items(clothingFilters) { filter ->
-                        FilterChipItem(
-                            filter = filter,
-                            onClick = { /* Handle filter */ }
+                        FilterTagChipThemed(
+                            label = filter.name,
+                            onClick = { /* TODO: aplicar filtro */ }
                         )
                     }
                 }
@@ -233,7 +262,7 @@ fun SearchScreen(
                     text = "Colores",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
@@ -242,9 +271,9 @@ fun SearchScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     items(colorFilters) { filter ->
-                        FilterChipItem(
+                        FilterColorChip(
                             filter = filter,
-                            onClick = { /* Handle filter */ }
+                            onClick = { /* TODO: aplicar filtro color */ }
                         )
                     }
                 }
@@ -262,7 +291,7 @@ fun SearchScreen(
                     text = "Rangos de precio",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
@@ -274,19 +303,17 @@ fun SearchScreen(
                             .padding(bottom = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Primera columna
                         PriceRangeChip(
                             priceRange = priceRanges[i],
                             modifier = Modifier.weight(1f),
-                            onClick = { /* Handle price selection */ }
+                            onClick = { /* TODO: set rango */ }
                         )
 
-                        // Segunda columna (si existe)
                         if (i + 1 < priceRanges.size) {
                             PriceRangeChip(
                                 priceRange = priceRanges[i + 1],
                                 modifier = Modifier.weight(1f),
-                                onClick = { /* Handle price selection */ }
+                                onClick = { /* TODO: set rango */ }
                             )
                         } else {
                             Spacer(modifier = Modifier.weight(1f))
@@ -309,7 +336,7 @@ fun SearchScreen(
                     text = "Ubicación",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
 
@@ -319,7 +346,7 @@ fun SearchScreen(
                         .fillMaxWidth()
                         .height(120.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFE8F5E8)
+                        containerColor = colors.secondaryContainer // verdosito/beige del tema
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
@@ -327,20 +354,18 @@ fun SearchScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = "Ubicación",
-                                tint = Color(0xFF4CAF50),
+                                tint = colors.secondary, // Nota estudiante: color no tan fuerte
                                 modifier = Modifier.size(32.dp)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = "Mapa de ubicación",
                                 fontSize = 12.sp,
-                                color = Color(0xFF4CAF50)
+                                color = colors.onSecondaryContainer
                             )
                         }
                     }
@@ -352,27 +377,37 @@ fun SearchScreen(
                     text = "Bogotá DC, Colombia",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black,
+                    color = colors.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(100.dp))
+                // Nota estudiante: “botoncito” aplicar filtros podría ir sticky en la parte baja
             }
         }
     }
 }
+
+// ===============
+// Chips / items
+// ===============
 
 @Composable
 private fun FilterCategoryChip(
     category: FilterCategory,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    // Nota estudiante: seleccionado -> primary/onPrimary; no seleccionado -> surface + borde outline
     Surface(
         onClick = onClick,
         modifier = Modifier.height(40.dp),
-        color = if (category.isSelected) Color(0xFF8B4513) else Color(0xFFF5F5F5),
-        shape = RoundedCornerShape(20.dp)
+        color = if (category.isSelected) colors.primary else colors.surface,
+        shape = RoundedCornerShape(20.dp),
+        border = if (!category.isSelected)
+            androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
+        else null
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -382,22 +417,59 @@ private fun FilterCategoryChip(
                 text = category.name,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (category.isSelected) Color.White else Color.Black
+                color = if (category.isSelected) colors.onPrimary else colors.onSurface
             )
         }
     }
 }
 
 @Composable
-private fun FilterChipItem(
-    filter: FilterChip,
+private fun FilterTagChipThemed(
+    label: String,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    // Nota estudiante: usamos primaryContainer para que no “grite”; texto con onPrimaryContainer
     Surface(
         onClick = onClick,
         modifier = Modifier.height(32.dp),
-        color = filter.color,
-        shape = RoundedCornerShape(16.dp)
+        color = colors.primaryContainer,
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = colors.onPrimaryContainer
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilterColorChip(
+    filter: FilterTag,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    // Nota estudiante: estos sí llevan color “fuerte” para representar el color del producto
+    val bg = filter.colorArgb?.let { androidx.compose.ui.graphics.Color(it) } ?: colors.surfaceVariant
+    val fg = filter.textColorArgb?.let { androidx.compose.ui.graphics.Color(it) }
+        ?: (if (filter.colorArgb == null) colors.onSurfaceVariant else colors.onPrimary)
+
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.height(32.dp),
+        color = bg,
+        shape = RoundedCornerShape(16.dp),
+        border = if (filter.colorArgb == null)
+            androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
+        else null
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -407,7 +479,7 @@ private fun FilterChipItem(
                 text = filter.name,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = filter.textColor
+                color = fg
             )
         }
     }
@@ -419,12 +491,14 @@ private fun PriceRangeChip(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    // surfaceVariant como fondo, outline como borde
     Surface(
         onClick = onClick,
         modifier = modifier.height(36.dp),
-        color = Color(0xFFF5F5F5),
+        color = colors.surface,
         shape = RoundedCornerShape(18.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -434,8 +508,26 @@ private fun PriceRangeChip(
                 text = priceRange.min,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black
+                color = colors.onSurface
             )
         }
+    }
+}
+
+// Previews con el FitMatchTheme
+
+@Preview(showBackground = true, name = "Search – Light (Brand)")
+@Composable
+private fun SearchPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        SearchScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Search – Dark (Brand)")
+@Composable
+private fun SearchPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        SearchScreen()
     }
 }

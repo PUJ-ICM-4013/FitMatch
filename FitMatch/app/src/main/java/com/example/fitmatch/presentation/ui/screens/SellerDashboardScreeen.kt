@@ -13,58 +13,57 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
+// ==========================
+// Modelos (sin colores hardcodeados)
+// ==========================
 data class DashboardMetric(
     val title: String,
     val value: String,
     val subtitle: String,
     val icon: ImageVector,
-    val iconColor: Color = Color(0xFF8B4513),
     val changeIndicator: String = "",
     val isPositive: Boolean = true
 )
 
 data class QuickAction(
     val title: String,
-    val icon: ImageVector,
-    val backgroundColor: Color = Color.White,
-    val iconColor: Color = Color(0xFF8B4513)
+    val icon: ImageVector
 )
 
-@Preview(showBackground = true)
+// ⚠️ Sin @Preview aquí: los previews van al final envueltos en tu tema
 @Composable
 fun SellerDashboardScreen(
     onActionClick: (String) -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
     val greeting = "¡Hola, María!"
     val date = "Lunes, 1 Septiembre 2025"
 
-    // Métricas principales
+    // Nota estudiante: datos mock — conectar a repo/VM cuando esté el backend listo
     val mainMetrics = listOf(
         DashboardMetric(
             title = "Ganancias esta semana",
             value = "$200.000 COP",
             subtitle = "",
             icon = Icons.Default.AttachMoney,
-            iconColor = Color(0xFF4CAF50)
         ),
         DashboardMetric(
             title = "Calificación",
             value = "4.8★",
             subtitle = "",
             icon = Icons.Default.Star,
-            iconColor = Color(0xFFFFC107)
         )
     )
 
-    // Indicadores principales
     val keyIndicators = listOf(
         DashboardMetric(
             title = "Ganancias del mes",
@@ -95,13 +94,11 @@ fun SellerDashboardScreen(
             value = "20",
             subtitle = "Requiere atención",
             icon = Icons.Default.Warning,
-            iconColor = Color(0xFFFF9800),
             changeIndicator = "⚠️",
             isPositive = false
         )
     )
 
-    // Acciones rápidas (modificado según tu solicitud)
     val quickActions = listOf(
         QuickAction("Agregar\nProducto", Icons.Default.Add),
         QuickAction("Mostrar\nProductos", Icons.AutoMirrored.Filled.ViewList),
@@ -114,7 +111,7 @@ fun SellerDashboardScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background) // antes: Color(0xFFF5F5DC)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -125,14 +122,15 @@ fun SellerDashboardScreen(
                     text = greeting,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF8B4513)
+                    color = colors.onBackground
                 )
                 Text(
                     text = date,
                     fontSize = 14.sp,
-                    color = Color.Gray
+                    color = colors.onSurfaceVariant
                 )
             }
+            // Nota estudiante: botoncito de “cambiar rango de fecha” podría ir aquí a la derecha
         }
 
         item {
@@ -155,7 +153,7 @@ fun SellerDashboardScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFF3E0)
+                    containerColor = colors.tertiaryContainer // Nota estudiante: amarillito del tema
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -168,7 +166,7 @@ fun SellerDashboardScreen(
                     Icon(
                         imageVector = Icons.Default.Warning,
                         contentDescription = "Alerta",
-                        tint = Color(0xFFFF9800),
+                        tint = colors.tertiary, // Nota estudiante: colorcito de warning, no tan agresivo como error
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
@@ -177,15 +175,16 @@ fun SellerDashboardScreen(
                             text = "Stock Bajo detectado",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFE65100)
+                            color = colors.onTertiaryContainer
                         )
                         Text(
-                            text = "5 Productos está por debajo de 5 unidades",
+                            text = "5 productos están por debajo de 5 unidades",
                             fontSize = 12.sp,
-                            color = Color(0xFFE65100).copy(alpha = 0.8f)
+                            color = colors.onTertiaryContainer.copy(alpha = 0.9f)
                         )
                     }
                 }
+                // Nota estudiante: si queremos alerta “fuerte”, cambiar a errorContainer/onErrorContainer
             }
         }
 
@@ -198,7 +197,7 @@ fun SellerDashboardScreen(
                 Icon(
                     imageVector = Icons.Default.Assessment,
                     contentDescription = "Indicadores",
-                    tint = Color(0xFF8B4513),
+                    tint = colors.primary,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -206,46 +205,30 @@ fun SellerDashboardScreen(
                     text = "Indicadores Principales",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = colors.onSurface
                 )
             }
         }
 
         item {
             // Grid de indicadores 2x2
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Primera fila
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    IndicatorCard(
-                        metric = keyIndicators[0],
-                        modifier = Modifier.weight(1f)
-                    )
-                    IndicatorCard(
-                        metric = keyIndicators[1],
-                        modifier = Modifier.weight(1f)
-                    )
+                    IndicatorCard(metric = keyIndicators[0], modifier = Modifier.weight(1f))
+                    IndicatorCard(metric = keyIndicators[1], modifier = Modifier.weight(1f))
                 }
-
-                // Segunda fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    IndicatorCard(
-                        metric = keyIndicators[2],
-                        modifier = Modifier.weight(1f)
-                    )
-                    IndicatorCard(
-                        metric = keyIndicators[3],
-                        modifier = Modifier.weight(1f)
-                    )
+                    IndicatorCard(metric = keyIndicators[2], modifier = Modifier.weight(1f))
+                    IndicatorCard(metric = keyIndicators[3], modifier = Modifier.weight(1f))
                 }
             }
+            // Nota estudiante: poner switch “ver vs semana pasada / vs mes pasado”
         }
 
         item {
@@ -257,7 +240,7 @@ fun SellerDashboardScreen(
                 Icon(
                     imageVector = Icons.Default.FlashOn,
                     contentDescription = "Acciones",
-                    tint = Color(0xFF8B4513),
+                    tint = colors.primary,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -265,17 +248,14 @@ fun SellerDashboardScreen(
                     text = "Acciones Rápidas",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = colors.onSurface
                 )
             }
         }
 
         item {
             // Grid de acciones rápidas 2x3
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Primera fila
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -291,8 +271,6 @@ fun SellerDashboardScreen(
                         onClick = { onActionClick("show_products") }
                     )
                 }
-
-                // Segunda fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -308,8 +286,6 @@ fun SellerDashboardScreen(
                         onClick = { onActionClick("comments") }
                     )
                 }
-
-                // Tercera fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -326,11 +302,10 @@ fun SellerDashboardScreen(
                     )
                 }
             }
+            // Nota estudiante: agregar “botoncito” de “Ver todas” si crece el grid
         }
 
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
 
@@ -339,11 +314,10 @@ private fun MainMetricCard(
     metric: DashboardMetric,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -351,10 +325,11 @@ private fun MainMetricCard(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Nota estudiante: icono con color primario para mantener marca
             Icon(
                 imageVector = metric.icon,
                 contentDescription = null,
-                tint = metric.iconColor,
+                tint = colors.primary,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -362,12 +337,12 @@ private fun MainMetricCard(
                 text = metric.value,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = colors.onSurface
             )
             Text(
                 text = metric.title,
                 fontSize = 12.sp,
-                color = Color.Gray,
+                color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -379,24 +354,20 @@ private fun IndicatorCard(
     metric: DashboardMetric,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Nota estudiante: aquí el iconito con primary para consistencia
                 Icon(
                     imageVector = metric.icon,
                     contentDescription = null,
-                    tint = metric.iconColor,
+                    tint = colors.primary,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -404,7 +375,7 @@ private fun IndicatorCard(
                     text = metric.value,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = colors.onSurface
                 )
             }
 
@@ -413,7 +384,7 @@ private fun IndicatorCard(
             Text(
                 text = metric.title,
                 fontSize = 12.sp,
-                color = Color.Black,
+                color = colors.onSurface,
                 fontWeight = FontWeight.Medium
             )
 
@@ -422,7 +393,7 @@ private fun IndicatorCard(
                 Text(
                     text = metric.subtitle,
                     fontSize = 10.sp,
-                    color = if (metric.isPositive) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                    color = if (metric.isPositive) colors.tertiary else colors.error // Nota estudiante: verdecito vs rojito del tema
                 )
             }
         }
@@ -435,12 +406,11 @@ private fun QuickActionCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         onClick = onClick,
         modifier = modifier.height(80.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = action.backgroundColor
-        ),
+        colors = CardDefaults.cardColors(containerColor = colors.surface), // antes: Color.White o custom
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -451,10 +421,11 @@ private fun QuickActionCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Nota estudiante: usar primary para que el iconito resalte pero sin “gritar”
             Icon(
                 imageVector = action.icon,
                 contentDescription = action.title,
-                tint = action.iconColor,
+                tint = colors.primary,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -462,10 +433,29 @@ private fun QuickActionCard(
                 text = action.title,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Black,
+                color = colors.onSurface,
                 textAlign = TextAlign.Center,
                 lineHeight = 12.sp
             )
         }
+    }
+}
+
+
+// Previews con el FitMatchTheme
+
+@Preview(showBackground = true, name = "Seller Dashboard – Light (Brand)")
+@Composable
+private fun SellerDashboardPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        SellerDashboardScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Seller Dashboard – Dark (Brand)")
+@Composable
+private fun SellerDashboardPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        SellerDashboardScreen()
     }
 }

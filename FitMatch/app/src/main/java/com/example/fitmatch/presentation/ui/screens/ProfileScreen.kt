@@ -1,27 +1,29 @@
 package com.example.fitmatch.presentation.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.material.icons.automirrored.filled.Help as AutoMirroredHelp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.example.compose.FitMatchTheme
 
 data class ProfileSection(
     val title: String,
@@ -36,14 +38,15 @@ data class ProfileItem(
     val onClick: () -> Unit = {}
 )
 
-@Preview(showBackground = true)
-@OptIn(ExperimentalMaterial3Api::class)
+// ⚠️ Sin @Preview aquí. Los previews van al final envueltos en FitMatchTheme.
 @Composable
 fun ProfileScreen(
     onBackClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
     onDeleteAccountClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
     var selectedRole by remember { mutableStateOf("Vendedor") }
     var selectedSizes by remember { mutableStateOf(setOf("S", "M", "L")) }
 
@@ -76,7 +79,7 @@ fun ProfileScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC)),
+            .background(colors.background), // antes: Color(0xFFF5F5DC)
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -88,20 +91,20 @@ fun ProfileScreen(
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Volver",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.onSurface // Nota estudiante: usar onSurface para respetar tema
                     )
                 }
                 Text(
                     text = "Configuración",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF8B4513),
+                    color = colors.onSurface,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.width(48.dp))
+                Spacer(modifier = Modifier.width(48.dp)) // para balancear el IconButton izquierdo
             }
         }
 
@@ -109,7 +112,7 @@ fun ProfileScreen(
             // Perfil del usuario
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -119,15 +122,14 @@ fun ProfileScreen(
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Avatar
+                    // Avatar (placeholder)
                     Box(
                         modifier = Modifier
                             .size(80.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFFFE4B5)),
+                            .background(colors.primary.copy(alpha = 0.12f)), // color suave para que no “tape”
                         contentAlignment = Alignment.Center
                     ) {
-                        // Aquí iría la imagen de perfil
                         Text(
                             text = "👩‍🦰",
                             fontSize = 40.sp
@@ -140,13 +142,13 @@ fun ProfileScreen(
                         text = "Mariana, 26",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = colors.onSurface
                     )
 
                     Text(
                         text = "Comprador",
                         fontSize = 14.sp,
-                        color = Color.Gray
+                        color = colors.onSurfaceVariant
                     )
                 }
             }
@@ -156,7 +158,7 @@ fun ProfileScreen(
             // Información Personal
             ProfileSectionCard(
                 section = personalInfo,
-                onItemClick = { /* Handle item click */ }
+                onItemClick = { /* TODO: abrir pantallita de edición */ }
             )
         }
 
@@ -164,18 +166,16 @@ fun ProfileScreen(
             // Métodos de Pago
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "MÉTODOS DE PAGO",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
+                        color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -191,23 +191,21 @@ fun ProfileScreen(
                                 Icon(
                                     imageVector = Icons.Default.CreditCard,
                                     contentDescription = null,
-                                    tint = Color(0xFF8B4513),
+                                    tint = colors.primary, // Nota estudiante: iconito con primary, no tan fuerte
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = cardNumber,
                                     fontSize = 14.sp,
-                                    color = Color.Black
+                                    color = colors.onSurface
                                 )
                             }
 
-                            TextButton(
-                                onClick = { /* Handle delete */ }
-                            ) {
+                            TextButton(onClick = { /* TODO: eliminar tarjeta */ }) {
                                 Text(
                                     text = action,
-                                    color = Color(0xFF8B4513),
+                                    color = colors.primary,
                                     fontSize = 12.sp
                                 )
                             }
@@ -219,23 +217,24 @@ fun ProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Add payment method */ }
+                            .clickable { /* TODO: agregar método de pago */ }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = null,
-                            tint = Color(0xFF8B4513),
+                            tint = colors.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Agregar método de pago",
                             fontSize = 14.sp,
-                            color = Color(0xFF8B4513)
+                            color = colors.primary
                         )
                     }
+                    // Nota estudiante: botoncito de “Ver todos” si la lista crece
                 }
             }
         }
@@ -244,7 +243,7 @@ fun ProfileScreen(
             // Direcciones de Envío
             ProfileSectionCard(
                 section = shippingInfo,
-                onItemClick = { /* Handle item click */ }
+                onItemClick = { /* TODO: abrir detalle/edición de dirección */ }
             )
         }
 
@@ -252,22 +251,20 @@ fun ProfileScreen(
             // Tallas Preferidas
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "TALLAS PREFERIDAS",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
+                        color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    // Grid de tallas
+                    // Grid de tallas (2 filas)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -277,11 +274,9 @@ fun ProfileScreen(
                                 size = size,
                                 isSelected = selectedSizes.contains(size),
                                 onToggle = {
-                                    selectedSizes = if (selectedSizes.contains(size)) {
-                                        selectedSizes - size
-                                    } else {
-                                        selectedSizes + size
-                                    }
+                                    selectedSizes =
+                                        if (selectedSizes.contains(size)) selectedSizes - size
+                                        else selectedSizes + size
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -299,11 +294,9 @@ fun ProfileScreen(
                                 size = size,
                                 isSelected = selectedSizes.contains(size),
                                 onToggle = {
-                                    selectedSizes = if (selectedSizes.contains(size)) {
-                                        selectedSizes - size
-                                    } else {
-                                        selectedSizes + size
-                                    }
+                                    selectedSizes =
+                                        if (selectedSizes.contains(size)) selectedSizes - size
+                                        else selectedSizes + size
                                 },
                                 modifier = Modifier.weight(1f)
                             )
@@ -317,18 +310,16 @@ fun ProfileScreen(
             // Configuración
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "CONFIGURACIÓN",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
+                        color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -336,13 +327,13 @@ fun ProfileScreen(
                         text = "IDIOMA",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color.Gray
+                        color = colors.onSurfaceVariant
                     )
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle language selection */ }
+                            .clickable { /* TODO: abrir selector de idioma */ }
                             .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -350,12 +341,12 @@ fun ProfileScreen(
                         Text(
                             text = "Español",
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = colors.onSurfaceVariant
                         )
                     }
                 }
@@ -365,18 +356,18 @@ fun ProfileScreen(
         item {
             // Botón Guardar Cambios
             Button(
-                onClick = { /* Save changes */ },
+                onClick = { /* TODO: guardar cambios */ },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B4513)
+                    containerColor = colors.primary
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
                 Text(
                     text = "Guardar Cambios",
-                    color = Color.White,
+                    color = colors.onPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -387,102 +378,100 @@ fun ProfileScreen(
             // Ayuda y Soporte
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "AYUDA Y SOPORTE",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
+                        color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle help center */ }
+                            .clickable { /* TODO: abrir centro de ayuda */ }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.AutoMirrored.Filled.Help,
                             contentDescription = null,
-                            tint = Color(0xFF8B4513),
+                            tint = colors.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Centro de ayuda",
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                     }
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle FAQ */ }
+                            .clickable { /* TODO: abrir FAQ */ }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.QuestionAnswer,
                             contentDescription = null,
-                            tint = Color(0xFF8B4513),
+                            tint = colors.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "FAQ y tutoriales",
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                     }
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle contact support */ }
+                            .clickable { /* TODO: contactar soporte */ }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Support,
                             contentDescription = null,
-                            tint = Color(0xFF8B4513),
+                            tint = colors.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Contactar soporte",
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                     }
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { /* Handle send message */ }
+                            .clickable { /* TODO: enviar mensaje */ }
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = null,
-                            tint = Color(0xFF8B4513),
+                            tint = colors.primary,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Enviar mensaje",
                             fontSize = 14.sp,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                     }
                 }
@@ -491,21 +480,19 @@ fun ProfileScreen(
 
         item {
             // Botones de acción
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Botón Cerrar Sesión
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                // Cerrar Sesión
                 OutlinedButton(
                     onClick = onLogoutClick,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color(0xFF8B4513)
+                        contentColor = colors.primary // texto/ícono
                     ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        Color(0xFF8B4513)
+                    border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                        width = 1.dp,
+                        brush = SolidColor(colors.primary)
                     ),
                     shape = RoundedCornerShape(25.dp)
                 ) {
@@ -516,23 +503,23 @@ fun ProfileScreen(
                     )
                 }
 
-                // Botón Eliminar cuenta
+                // Eliminar cuenta
                 TextButton(
                     onClick = onDeleteAccountClick,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = colors.error
+                    )
                 ) {
                     Text(
                         text = "Eliminar cuenta",
-                        color = Color.Red,
                         fontSize = 14.sp
                     )
                 }
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
 
@@ -541,20 +528,19 @@ private fun ProfileSectionCard(
     section: ProfileSection,
     onItemClick: (ProfileItem) -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = section.title,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray,
+                color = colors.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -573,13 +559,13 @@ private fun ProfileSectionCard(
                                 text = item.label,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = Color.Gray
+                                color = colors.onSurfaceVariant
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = item.value,
                                 fontSize = 14.sp,
-                                color = Color.Black
+                                color = colors.onSurface
                             )
                         }
 
@@ -587,7 +573,7 @@ private fun ProfileSectionCard(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = "Editar",
-                                tint = Color.Gray,
+                                tint = colors.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -595,7 +581,7 @@ private fun ProfileSectionCard(
 
                     if (index < section.items.size - 1) {
                         HorizontalDivider(
-                            color = Color.Gray.copy(alpha = 0.2f),
+                            color = colors.outlineVariant,
                             thickness = 1.dp,
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
@@ -613,18 +599,22 @@ private fun SizeChip(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
+    // Nota estudiante: seleccionado -> primary/onPrimary; no seleccionado -> surface + borde outline
     Card(
         modifier = modifier
             .clickable { onToggle() }
             .height(40.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                Color(0xFF8B4513) else Color.Gray.copy(alpha = 0.1f)
+            containerColor = if (isSelected) colors.primary else colors.surface
         ),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isSelected) 4.dp else 0.dp
-        )
+        ),
+        border = if (!isSelected)
+            androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
+        else null
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -634,8 +624,26 @@ private fun SizeChip(
                 text = size,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (isSelected) Color.White else Color.Gray
+                color = if (isSelected) colors.onPrimary else colors.onSurface
             )
         }
+    }
+}
+
+
+// Previews con FitMatchTheme
+@Preview(showBackground = true, name = "Profile – Light (Brand)")
+@Composable
+private fun ProfilePreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        ProfileScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Profile – Dark (Brand)")
+@Composable
+private fun ProfilePreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        ProfileScreen()
     }
 }

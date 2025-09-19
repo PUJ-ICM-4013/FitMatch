@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
 data class TimeFilter(
     val id: String,
@@ -43,8 +43,7 @@ data class StatMetric(
 data class CategoryStats(
     val name: String,
     val percentage: Float,
-    val value: String,
-    val color: Color
+    val value: String
 )
 
 data class ProductStats(
@@ -53,7 +52,7 @@ data class ProductStats(
     val revenue: String
 )
 
-@Preview(showBackground = true)
+// ⚠️ No @Preview aquí: el preview va abajo envuelto en FitMatchTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatisticsScreen(
@@ -61,15 +60,20 @@ fun StatisticsScreen(
     onMoreClick: () -> Unit = {},
     onExportClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
+    // Nota estudiante: usar estado simple, luego cambiamos a ViewModel si toca persistir filtros entre recomposiciones
     var selectedFilter by remember { mutableStateOf("ultimos_7d") }
 
+    // Nota estudiante: aquí podríamos meter un date range picker -> "botoncito para rango personalizado"
     val timeFilters = listOf(
         TimeFilter("ultimos_7d", "Últimos 7d", selectedFilter == "ultimos_7d"),
         TimeFilter("ultimos_30d", "Últimos 30d", selectedFilter == "ultimos_30d"),
         TimeFilter("90_dias", "90 días", selectedFilter == "90_dias"),
-        TimeFilter("personal", "Personal", selectedFilter == "personal")
+        TimeFilter("personal", "Personal", selectedFilter == "personal") // TODO: poner modal para fechas
     )
 
+    // Nota estudiante: los números son mock; luego conectar a repo/endpoint
     val metrics = listOf(
         StatMetric("Ingresos", "$6.8M", "10% 7d", true),
         StatMetric("Pedidos", "54", "8% 7d", true),
@@ -79,10 +83,11 @@ fun StatisticsScreen(
         StatMetric("Visitantes", "7,930", "8%", true)
     )
 
+    // Nota estudiante: color de barra lo tomamos del tema para que no choque en dark mode
     val categoryStats = listOf(
-        CategoryStats("Sustentable", 0.88f, "88", Color(0xFF8B4513)),
-        CategoryStats("Minimal", 0.76f, "76", Color(0xFF8B4513)),
-        CategoryStats("Vintage", 0.89f, "140", Color(0xFF8B4513))
+        CategoryStats("Sustentable", 0.88f, "88"),
+        CategoryStats("Minimal", 0.76f, "76"),
+        CategoryStats("Vintage", 0.89f, "140")
     )
 
     val topProducts = listOf(
@@ -94,13 +99,13 @@ fun StatisticsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background) // antes: Color(0xFFF5F5DC)
     ) {
         item {
             // Header
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = colors.surface, // antes: White
                 shadowElevation = 1.dp
             ) {
                 Row(
@@ -114,7 +119,7 @@ fun StatisticsScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.Black
+                            tint = colors.onSurface // antes: Black
                         )
                     }
 
@@ -122,14 +127,14 @@ fun StatisticsScreen(
                         text = "Estadísticas",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        color = colors.onSurface // Nota estudiante: color del tema para buen contraste
                     )
 
                     IconButton(onClick = onMoreClick) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = "Más opciones",
-                            tint = Color.Black
+                            tint = colors.onSurface
                         )
                     }
                 }
@@ -159,49 +164,27 @@ fun StatisticsScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Primera fila
+                // Nota estudiante: si cabe, meter “botoncito” de refrescar aquí arriba
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MetricCard(
-                        metric = metrics[0], // Ingresos
-                        modifier = Modifier.weight(1f)
-                    )
-                    MetricCard(
-                        metric = metrics[1], // Pedidos
-                        modifier = Modifier.weight(1f)
-                    )
+                    MetricCard(metric = metrics[0], modifier = Modifier.weight(1f))
+                    MetricCard(metric = metrics[1], modifier = Modifier.weight(1f))
                 }
-
-                // Segunda fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MetricCard(
-                        metric = metrics[2], // Ticket promedio
-                        modifier = Modifier.weight(1f)
-                    )
-                    MetricCard(
-                        metric = metrics[3], // Conversión
-                        modifier = Modifier.weight(1f)
-                    )
+                    MetricCard(metric = metrics[2], modifier = Modifier.weight(1f))
+                    MetricCard(metric = metrics[3], modifier = Modifier.weight(1f))
                 }
-
-                // Tercera fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    MetricCard(
-                        metric = metrics[4], // Seguidores
-                        modifier = Modifier.weight(1f)
-                    )
-                    MetricCard(
-                        metric = metrics[5], // Visitantes
-                        modifier = Modifier.weight(1f)
-                    )
+                    MetricCard(metric = metrics[4], modifier = Modifier.weight(1f))
+                    MetricCard(metric = metrics[5], modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -212,15 +195,11 @@ fun StatisticsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -230,18 +209,18 @@ fun StatisticsScreen(
                             text = "Ventas",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
                         Text(
                             text = "últimos 30 días",
                             fontSize = 12.sp,
-                            color = Color.Gray
+                            color = colors.onSurfaceVariant
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Gráfica simple
+                    // Nota estudiante: color primario fuerte para que no tape tanto el fondo, grosor 3dp bonito
                     SalesChart(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -257,20 +236,16 @@ fun StatisticsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "Top categorías",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = colors.onSurface,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
@@ -280,6 +255,7 @@ fun StatisticsScreen(
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
+                    // TODO estudiante: poner botoncito “Ver todas” si la lista crece
                 }
             }
         }
@@ -290,15 +266,11 @@ fun StatisticsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
+                colors = CardDefaults.cardColors(containerColor = colors.surface),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -308,14 +280,15 @@ fun StatisticsScreen(
                             text = "Top productos",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = colors.onSurface
                         )
 
+                        // Nota estudiante: TextButton con color del tema (antes estaba hardcodeado)
                         TextButton(onClick = onExportClick) {
                             Text(
                                 text = "Exportar CSV",
                                 fontSize = 12.sp,
-                                color = Color(0xFF8B4513)
+                                color = colors.primary
                             )
                         }
                     }
@@ -331,14 +304,14 @@ fun StatisticsScreen(
                             text = "Productos",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Gray,
+                            color = colors.onSurfaceVariant,
                             modifier = Modifier.weight(2f)
                         )
                         Text(
                             text = "Ventas",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Gray,
+                            color = colors.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f)
                         )
@@ -346,7 +319,7 @@ fun StatisticsScreen(
                             text = "Ingresos",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Gray,
+                            color = colors.onSurfaceVariant,
                             textAlign = TextAlign.End,
                             modifier = Modifier.weight(1f)
                         )
@@ -364,9 +337,7 @@ fun StatisticsScreen(
             }
         }
 
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+        item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
 
@@ -375,13 +346,15 @@ private fun TimeFilterChip(
     filter: TimeFilter,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+    // Nota estudiante: cuando está seleccionado, usamos primary/onPrimary; cuando no, surface + outline
     Surface(
         onClick = onClick,
         modifier = Modifier.height(32.dp),
-        color = if (filter.isSelected) Color(0xFF8B4513) else Color.White,
+        color = if (filter.isSelected) colors.primary else colors.surface,
         shape = RoundedCornerShape(16.dp),
         border = if (!filter.isSelected) {
-            androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f))
+            androidx.compose.foundation.BorderStroke(1.dp, colors.outline)
         } else null
     ) {
         Box(
@@ -392,7 +365,7 @@ private fun TimeFilterChip(
                 text = filter.name,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (filter.isSelected) Color.White else Color.Black
+                color = if (filter.isSelected) colors.onPrimary else colors.onSurface
             )
         }
     }
@@ -403,21 +376,18 @@ private fun MetricCard(
     metric: StatMetric,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Text(
                 text = metric.title,
                 fontSize = 12.sp,
-                color = Color.Gray
+                color = colors.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -426,24 +396,22 @@ private fun MetricCard(
                 text = metric.value,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = colors.onSurface
             )
 
             Spacer(modifier = Modifier.height(2.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = if (metric.isPositive) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = if (metric.isPositive) Color(0xFF4CAF50) else Color(0xFFF44336),
+                    tint = if (metric.isPositive) colors.tertiary else colors.error, // antes: verde/rojo hardcode
                     modifier = Modifier.size(12.dp)
                 )
                 Text(
                     text = metric.change,
                     fontSize = 10.sp,
-                    color = if (metric.isPositive) Color(0xFF4CAF50) else Color(0xFFF44336)
+                    color = if (metric.isPositive) colors.tertiary else colors.error
                 )
             }
 
@@ -451,7 +419,7 @@ private fun MetricCard(
                 Text(
                     text = metric.subtitle,
                     fontSize = 10.sp,
-                    color = Color.Gray
+                    color = colors.onSurfaceVariant
                 )
             }
         }
@@ -462,9 +430,8 @@ private fun MetricCard(
 private fun SalesChart(
     modifier: Modifier = Modifier
 ) {
-    Canvas(
-        modifier = modifier
-    ) {
+    val colors = MaterialTheme.colorScheme
+    Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
         val points = listOf(
@@ -478,15 +445,15 @@ private fun SalesChart(
             Offset(width, height * 0.2f)
         )
 
-        val path = Path()
-        path.moveTo(points.first().x, points.first().y)
-        for (i in 1 until points.size) {
-            path.lineTo(points[i].x, points[i].y)
+        val path = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            for (i in 1 until points.size) lineTo(points[i].x, points[i].y)
         }
 
+        // Nota estudiante: color primario del tema para que combine; cap redondeado se ve más “suave”
         drawPath(
             path = path,
-            color = Color(0xFF8B4513),
+            color = colors.primary,
             style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
         )
     }
@@ -497,6 +464,7 @@ private fun CategoryProgressBar(
     category: CategoryStats,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -506,31 +474,32 @@ private fun CategoryProgressBar(
             Text(
                 text = category.name,
                 fontSize = 14.sp,
-                color = Color.Black
+                color = colors.onSurface
             )
             Text(
                 text = category.value,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = colors.onSurface
             )
         }
 
         Spacer(modifier = Modifier.height(4.dp))
 
+        // Nota estudiante: track con surfaceVariant para que no “grite”; fill con primary
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(6.dp)
                 .clip(RoundedCornerShape(3.dp))
-                .background(Color.Gray.copy(alpha = 0.2f))
+                .background(colors.surfaceVariant)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(category.percentage)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(3.dp))
-                    .background(category.color)
+                    .background(colors.primary) // antes: marón hardcode
             )
         }
     }
@@ -541,6 +510,7 @@ private fun ProductStatsRow(
     product: ProductStats,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -549,7 +519,7 @@ private fun ProductStatsRow(
         Text(
             text = product.name,
             fontSize = 14.sp,
-            color = Color.Black,
+            color = colors.onSurface,
             modifier = Modifier.weight(2f)
         )
 
@@ -557,7 +527,7 @@ private fun ProductStatsRow(
             text = product.sales,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = colors.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.weight(1f)
         )
@@ -566,9 +536,28 @@ private fun ProductStatsRow(
             text = product.revenue,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = colors.onSurface,
             textAlign = TextAlign.End,
             modifier = Modifier.weight(1f)
         )
+    }
+}
+
+
+// Previews con el FitMatchTheme
+
+@Preview(showBackground = true, name = "Statistics – Light (Brand)")
+@Composable
+private fun StatisticsPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        StatisticsScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Statistics – Dark (Brand)")
+@Composable
+private fun StatisticsPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        StatisticsScreen()
     }
 }

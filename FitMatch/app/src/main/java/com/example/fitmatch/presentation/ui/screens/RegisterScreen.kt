@@ -1,32 +1,40 @@
 package com.example.fitmatch.presentation.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.compose.FitMatchTheme
 
-@Preview(showBackground = true)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onBackClick: () -> Unit = {},
     onRegisterClick: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.colorScheme
+
+    // si esto va a ViewModel, levantar a estado de VM
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
@@ -36,20 +44,26 @@ fun RegisterScreen(
     var selectedRole by remember { mutableStateOf("") }
 
     var isGenderDropdownExpanded by remember { mutableStateOf(false) }
-    var isRoleDropdownExpanded by remember { mutableStateOf(false) }
+    var isRoleDropdownExpanded by remember { mutableStateOf(false) } // lo dejamos por si cambiamos a dropdown
+
+    val showPassword = remember { mutableStateOf(false) } // botoncito ojo
 
     val genderOptions = listOf("Masculino", "Femenino", "Otro", "Prefiero no decir")
     val roleOptions = listOf("Comprador", "Vendedor", "Reparador")
+    val scroll = rememberScrollState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5DC))
+            .background(colors.background) // antes: Color(0xFFF5F5DC)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
+                .verticalScroll(scroll)      // ← habilita scroll
+                .imePadding()                // ← empuja contenido cuando aparece el teclado
+                .navigationBarsPadding()     // ← evita quedar debajo de la barra de navegación
         ) {
             // Header con botón de regreso
             Row(
@@ -58,20 +72,20 @@ fun RegisterScreen(
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Volver",
-                        tint = Color(0xFF8B4513)
+                        tint = colors.onSurface // antes: marrón fijo
                     )
                 }
                 Text(
                     text = "Registrarse",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color(0xFF8B4513),
+                    color = colors.onSurface,
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.width(48.dp)) // Espacio equivalente al IconButton
+                Spacer(modifier = Modifier.width(48.dp)) // Nota estudiante: para balancear el IconButton izq.
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -79,7 +93,7 @@ fun RegisterScreen(
             Text(
                 text = "Únete a nuestra comunidad de moda",
                 fontSize = 16.sp,
-                color = Color.Gray,
+                color = colors.onSurfaceVariant, // antes: Gray
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -94,10 +108,17 @@ fun RegisterScreen(
                 placeholder = { Text("ejemplo@email.com o +57 300 123 4567") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF8B4513),
-                    focusedLabelColor = Color(0xFF8B4513)
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -110,10 +131,28 @@ fun RegisterScreen(
                 placeholder = { Text("Mínimo 8 caracteres") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF8B4513),
-                    focusedLabelColor = Color(0xFF8B4513)
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (showPassword.value) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    // botoncito para mostrar/ocultar contraseña
+                    IconButton(onClick = { showPassword.value = !showPassword.value }) {
+                        Icon(
+                            imageVector = if (showPassword.value) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                            contentDescription = if (showPassword.value) "Ocultar contraseña" else "Mostrar contraseña",
+                            tint = colors.primary
+                        )
+                    }
+                },
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -126,9 +165,16 @@ fun RegisterScreen(
                 placeholder = { Text("Tu nombre completo") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF8B4513),
-                    focusedLabelColor = Color(0xFF8B4513)
-                )
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
+                ),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -141,9 +187,17 @@ fun RegisterScreen(
                 placeholder = { Text("dd / mm / aaaa") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF8B4513),
-                    focusedLabelColor = Color(0xFF8B4513)
-                )
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
+                ),
+                singleLine = true
+                // aquí pondría un botoncito de calendario y un DatePicker.
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -155,9 +209,16 @@ fun RegisterScreen(
                 label = { Text("Ciudad") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF8B4513),
-                    focusedLabelColor = Color(0xFF8B4513)
-                )
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
+                ),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -176,16 +237,24 @@ fun RegisterScreen(
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = colors.onSurfaceVariant
                         )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(),
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true), // ← antes: .menuAnchor()
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF8B4513),
-                        focusedLabelColor = Color(0xFF8B4513)
-                    )
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        cursorColor = colors.primary,
+                        focusedContainerColor = colors.surface,
+                        unfocusedContainerColor = colors.surface,
+                        focusedLabelColor = colors.primary,
+                        focusedTextColor = colors.onSurface,
+                        unfocusedTextColor = colors.onSurface
+                    ),
+                    singleLine = true
                 )
                 ExposedDropdownMenu(
                     expanded = isGenderDropdownExpanded,
@@ -210,36 +279,40 @@ fun RegisterScreen(
                 text = "¿Cómo quieres usar la app?",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color(0xFF8B4513)
+                color = colors.primary // antes: marrón fijo
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Botones de rol
+            // Botones de rol (mejor como FilterChips para consistencia Material3)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 roleOptions.forEach { role ->
-                    Button(
+                    FilterChip(
+                        selected = selectedRole == role,
                         onClick = { selectedRole = role },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (selectedRole == role)
-                                Color(0xFF8B4513) else Color.Gray.copy(alpha = 0.3f)
+                        label = { Text(role) },
+                        // Nota estudiante: seleccionado -> primary/onPrimary; sino -> surface + outline
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = colors.primary,
+                            selectedLabelColor = colors.onPrimary,
+                            containerColor = colors.surface,
+                            labelColor = colors.onSurface,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selectedRole == role,
+                            borderColor = colors.outline,
+                            selectedBorderColor = colors.primary
                         ),
                         shape = RoundedCornerShape(20.dp)
-                    ) {
-                        Text(
-                            text = role,
-                            color = if (selectedRole == role) Color.White else Color.Gray,
-                            fontSize = 12.sp
-                        )
-                    }
+                    )
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Personaje Tito
             Row(
@@ -250,7 +323,7 @@ fun RegisterScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .background(
-                            Color(0xFF8B4513).copy(alpha = 0.1f),
+                            colors.primary.copy(alpha = 0.1f), // color suave para que no “tape”
                             RoundedCornerShape(40.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -266,7 +339,7 @@ fun RegisterScreen(
                 Text(
                     text = "Seré tu\nguía de\nmoda",
                     fontSize = 14.sp,
-                    color = Color(0xFF8B4513),
+                    color = colors.primary,
                     fontWeight = FontWeight.Medium
                 )
             }
@@ -280,17 +353,36 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF8B4513)
+                    containerColor = colors.primary
                 ),
                 shape = RoundedCornerShape(25.dp)
             ) {
                 Text(
                     text = "Registrarse",
-                    color = Color.White,
+                    color = colors.onPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
             }
         }
+    }
+}
+
+
+// Previews con el tema  FitMatchTheme
+
+@Preview(showBackground = true, name = "Register – Light (Brand)")
+@Composable
+private fun RegisterPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        RegisterScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Register – Dark (Brand)")
+@Composable
+private fun RegisterPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        RegisterScreen()
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,7 +43,7 @@ data class StoreProduct(
     val hasDiscount: Boolean = false
 )
 
-@Preview(showBackground = true)
+// ⚠️ Sin @Preview aquí
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoreProfileScreen(
@@ -52,288 +51,277 @@ fun StoreProfileScreen(
     onFollowClick: () -> Unit = {},
     onProductClick: (String) -> Unit = {}
 ) {
-    val storeProfile = StoreProfile(
-        name = "Atelier Nova",
-        followers = "128",
-        following = "12.4k",
-        rating = "4.8★",
-        description = "Moda sostenible de lujo a precio de Bogotá. Envíos a todo el país. Óptica rápida.",
-        hasNewPublications = true,
-        mascotMessage = "Tito ha confirmado las publicaciones Excelente en tus gustos! Échale un vistazo."
-    )
+    val colors = MaterialTheme.colorScheme
 
-    val products = listOf(
-        StoreProduct("1", "Blazer Premium en Lana", "$199,000", "$259,000", 24, 3, true),
-        StoreProduct("2", "Blazer Premium en Lana", "$199,000", null, 18, 1),
-        StoreProduct("3", "Blazer Premium en Lana", "$199,000", null, 31, 5),
-        StoreProduct("4", "Blazer Premium en Lana", "$199,000", null, 12, 2)
-    )
+    val storeProfile = remember {
+        StoreProfile(
+            name = "Atelier Nova",
+            followers = "128",
+            following = "12.4k",
+            rating = "4.8★",
+            description = "Moda sostenible de lujo a precio de Bogotá. Envíos a todo el país. Óptica rápida.",
+            hasNewPublications = true,
+            mascotMessage = "Tito ha confirmado las publicaciones ¡Excelente en tus gustos! Échale un vistazo."
+        )
+    }
 
-    FitMatchTheme {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            item {
-                // Header
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 1.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Volver",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+    val products = remember {
+        listOf(
+            StoreProduct("1", "Blazer Premium en Lana", "$199,000", "$259,000", 24, 3, true),
+            StoreProduct("2", "Blazer Premium en Lana", "$199,000", null, 18, 1),
+            StoreProduct("3", "Blazer Premium en Lana", "$199,000", null, 31, 5),
+            StoreProduct("4", "Blazer Premium en Lana", "$199,000", null, 12, 2)
+        )
+    }
 
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            // Icono de ubicación
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Ubicación",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-
-                            // Icono de chat
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = "Chat",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(24.dp)
-                            )
-
-                            // Botón Seguir
-                            Button(
-                                onClick = onFollowClick,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent
-                                ),
-                                shape = RoundedCornerShape(20.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
-                                modifier = Modifier.height(32.dp),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "Seguir",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Perfil de la tienda
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    // Avatar y stats
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Avatar placeholder
-                        Box(
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Store,
-                                contentDescription = "Avatar tienda",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(40.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        // Stats
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = storeProfile.followers,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Seguidores",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = storeProfile.following,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Siguiendo",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = storeProfile.rating,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "Rating",
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Nombre de la tienda
-                    Text(
-                        text = storeProfile.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Descripción
-                    Text(
-                        text = storeProfile.description,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 20.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Mensaje de la mascota con notificación
-                    if (storeProfile.hasNewPublications) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Avatar mascota
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "🐶",
-                                        fontSize = 20.sp
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                Text(
-                                    text = storeProfile.mascotMessage,
-                                    fontSize = 12.sp,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.weight(1f),
-                                    lineHeight = 16.sp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                // Título Publicaciones
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.background)
+    ) {
+        item {
+            // Header
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = colors.surface,
+                shadowElevation = 1.dp
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Publicaciones",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            item {
-                // Grid de productos
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .height(600.dp), // Altura fija para el grid
-                    userScrollEnabled = false
-                ) {
-                    items(products) { product ->
-                        ProductCard(
-                            product = product,
-                            onClick = { onProductClick(product.id) }
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = colors.onSurface
                         )
+                    }
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Ubicación",
+                            tint = colors.onSurface,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Chat,
+                            contentDescription = "Chat",
+                            tint = colors.onSurface,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        // Mejor como OutlinedButton con tokens del tema
+                        OutlinedButton(
+                            onClick = onFollowClick,
+                            shape = RoundedCornerShape(20.dp),
+                            border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
+                                width = 1.dp
+                            ),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = colors.onSurface
+                            ),
+                            modifier = Modifier.height(32.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Seguir",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }
+        }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
+        item {
+            // Perfil de la tienda
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                // Avatar y stats
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Avatar placeholder
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .background(colors.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Store,
+                            contentDescription = "Avatar tienda",
+                            tint = colors.onSurfaceVariant,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    // Stats
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = storeProfile.followers,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.onSurface
+                            )
+                            Text(
+                                text = "Seguidores",
+                                fontSize = 12.sp,
+                                color = colors.onSurfaceVariant
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = storeProfile.following,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.onSurface
+                            )
+                            Text(
+                                text = "Siguiendo",
+                                fontSize = 12.sp,
+                                color = colors.onSurfaceVariant
+                            )
+                        }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = storeProfile.rating,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.onSurface
+                            )
+                            Text(
+                                text = "Rating",
+                                fontSize = 12.sp,
+                                color = colors.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Nombre de la tienda
+                Text(
+                    text = storeProfile.name,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Descripción
+                Text(
+                    text = storeProfile.description,
+                    fontSize = 14.sp,
+                    color = colors.onSurfaceVariant,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Mensaje de la mascota con notificación
+                if (storeProfile.hasNewPublications) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = colors.primaryContainer
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Avatar mascota
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(colors.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "🐶",
+                                    fontSize = 20.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Text(
+                                text = storeProfile.mascotMessage,
+                                fontSize = 12.sp,
+                                color = colors.onPrimaryContainer,
+                                modifier = Modifier.weight(1f),
+                                lineHeight = 16.sp
+                            )
+                        }
+                    }
+                }
             }
         }
+
+        item {
+            // Título Publicaciones
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Publicaciones",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onSurface
+                )
+            }
+        }
+
+        item {
+            // Grid de productos
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .height(600.dp), // Altura fija para el grid (scroll dentro de la pantalla)
+                userScrollEnabled = false
+            ) {
+                items(products) { product ->
+                    ProductCard(
+                        product = product,
+                        onClick = { onProductClick(product.id) }
+                    )
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(32.dp)) }
     }
 }
 
@@ -342,11 +330,13 @@ private fun ProductCard(
     product: StoreProduct,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
+
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = colors.surface
         ),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -357,13 +347,13 @@ private fun ProductCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                    .background(colors.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Image,
                     contentDescription = "Imagen del producto",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = colors.onSurfaceVariant,
                     modifier = Modifier.size(40.dp)
                 )
 
@@ -374,7 +364,7 @@ private fun ProductCard(
                             .align(Alignment.TopEnd)
                             .padding(8.dp)
                             .background(
-                                MaterialTheme.colorScheme.error,
+                                colors.error,
                                 RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -383,7 +373,7 @@ private fun ProductCard(
                             text = "OFERTA",
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onError
+                            color = colors.onError
                         )
                     }
                 }
@@ -397,30 +387,28 @@ private fun ProductCard(
                     text = product.name,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = colors.onSurface,
                     maxLines = 2
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Precio
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = product.price,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = colors.onSurface
                     )
 
-                    if (product.originalPrice != null) {
+                    product.originalPrice?.let {
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = product.originalPrice,
+                            text = it,
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = androidx.compose.ui.text.TextStyle(
+                            color = colors.onSurfaceVariant,
+                            style = LocalTextStyle.current.copy(
                                 textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
                             )
                         )
@@ -434,41 +422,55 @@ private fun ProductCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.FavoriteBorder,
                             contentDescription = "Likes",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = colors.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = product.likes.toString(),
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = colors.onSurfaceVariant,
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.ChatBubbleOutline,
                             contentDescription = "Comentarios",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = colors.onSurfaceVariant,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = product.comments.toString(),
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = colors.onSurfaceVariant,
                             modifier = Modifier.padding(start = 4.dp)
                         )
                     }
                 }
             }
         }
+    }
+}
+
+// Previews con el FitMatchTheme
+
+@Preview(showBackground = true, name = "Store Profile – Light (Brand)")
+@Composable
+private fun StoreProfilePreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        StoreProfileScreen()
+    }
+}
+
+@Preview(showBackground = true, name = "Store Profile – Dark (Brand)")
+@Composable
+private fun StoreProfilePreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
+        StoreProfileScreen()
     }
 }

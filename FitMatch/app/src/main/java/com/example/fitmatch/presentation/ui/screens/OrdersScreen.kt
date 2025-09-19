@@ -5,25 +5,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.compose.FitMatchTheme
-
-
 
 enum class OrderStatus { TODOS, PENDIENTE, PREPARANDO, ENVIADO }
 
@@ -48,37 +47,40 @@ private fun sampleOrders() = listOf(
 @Composable
 fun OrdersScreen(
     onMenuClick: () -> Unit = {},
-    onBack: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     onOrderClick: (OrderUi) -> Unit = {}
 ) {
     val colors = MaterialTheme.colorScheme
-    var query by remember { mutableStateOf("") }
-    var selected by remember { mutableStateOf(OrderStatus.TODOS) }
+    var query by rememberSaveable { mutableStateOf("") } // estudiante: usar saveable para rotación
+    var selected by rememberSaveable { mutableStateOf(OrderStatus.TODOS) }
     val orders = remember { sampleOrders() }
 
     Scaffold(
         topBar = {
-            // Top bar anclada con título centrado y overflow a la derecha
+            // estudiante: si quieres elevación y scroll-behavior, migrar a CenterAlignedTopAppBar
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(colors.background)
+                    .background(colors.surface) // antes background → mejor surface para top bars
                     .padding(top = 12.dp, bottom = 8.dp)
             ) {
-                // (Opcional) Back a la izquierda: descomenta si lo necesitas
-                // IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart)) {
-                //     Icon(Icons.Filled.ArrowBack, contentDescription = "Atrás")
-                // }
+                //  Back a la izquierda:
+                IconButton(onClick = onBackClick, modifier = Modifier.align(Alignment.CenterStart)) {
+                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                 }
                 Text(
                     "Mis Pedidos",
                     modifier = Modifier.align(Alignment.Center),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 22.sp
-                    )
+                        fontSize = 22.sp,
+                        color = colors.onSurface
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 IconButton(onClick = onMenuClick, modifier = Modifier.align(Alignment.CenterEnd)) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = "Más")
+                    Icon(Icons.Filled.MoreVert, contentDescription = "Más", tint = colors.onSurface)
                 }
             }
         }
@@ -108,26 +110,34 @@ fun OrdersScreen(
             Spacer(Modifier.height(12.dp))
 
             // ───── Lista scrolleable
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Filtro mock básico
-                val filtered = orders.filter { o ->
-                    (selected == OrderStatus.TODOS || o.status == selected) &&
-                            (query.isBlank() || o.id.contains(query, true) ||
-                                    o.buyerName.contains(query, true) || o.buyerHandle.contains(query, true))
-                }
-                items(filtered, key = { it.id }) { order ->
-                    OrderCard(order = order, onClick = { onOrderClick(order) })
+            val filtered = orders.filter { o ->
+                (selected == OrderStatus.TODOS || o.status == selected) &&
+                        (query.isBlank() || o.id.contains(query, true) ||
+                                o.buyerName.contains(query, true) || o.buyerHandle.contains(query, true))
+            }
+
+            if (filtered.isEmpty()) {
+                // estudiante: estado vacío bonito para UX, guiamos a limpiar filtros
+                EmptyState(
+                    title = "Sin resultados",
+                    subtitle = "Prueba ajustando los filtros o busca por ID, nombre o usuario."
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filtered, key = { it.id }) { order ->
+                        OrderCard(order = order, onClick = { onOrderClick(order) })
+                    }
                 }
             }
         }
     }
 }
 
-
+/* --------------------------------- Partials -------------------------------- */
 
 @Composable
 private fun SearchField(
@@ -142,17 +152,19 @@ private fun SearchField(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp)),
-        placeholder = { Text(placeholder) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        placeholder = { Text(placeholder, color = colors.onSurfaceVariant) },
+        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = colors.onSurfaceVariant) },
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.onSurface),
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedContainerColor = colors.surfaceVariant.copy(alpha = 0.35f),
             focusedContainerColor = colors.surfaceVariant.copy(alpha = 0.35f),
-            unfocusedBorderColor = Color.Transparent,
-            focusedBorderColor = Color.Transparent
+            unfocusedBorderColor = colors.outlineVariant,
+            focusedBorderColor = colors.primary
         )
     )
+    // estudiante: meter debounce si la búsqueda va a red/hardwork
 }
 
 @Composable
@@ -165,31 +177,12 @@ private fun FilterRow(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        FilterPill(
-            text = "Todos",
-            selected = selected == OrderStatus.TODOS,
-            onClick = { onSelected(OrderStatus.TODOS) },
-            colors = colors
-        )
-        FilterPill(
-            text = "Pendientes",
-            selected = selected == OrderStatus.PENDIENTE,
-            onClick = { onSelected(OrderStatus.PENDIENTE) },
-            colors = colors
-        )
-        FilterPill(
-            text = "Preparando",
-            selected = selected == OrderStatus.PREPARANDO,
-            onClick = { onSelected(OrderStatus.PREPARANDO) },
-            colors = colors
-        )
-        FilterPill(
-            text = "Enviado",
-            selected = selected == OrderStatus.ENVIADO,
-            onClick = { onSelected(OrderStatus.ENVIADO) },
-            colors = colors
-        )
+        FilterPill("Todos", selected == OrderStatus.TODOS, { onSelected(OrderStatus.TODOS) }, colors)
+        FilterPill("Pendientes", selected == OrderStatus.PENDIENTE, { onSelected(OrderStatus.PENDIENTE) }, colors)
+        FilterPill("Preparando", selected == OrderStatus.PREPARANDO, { onSelected(OrderStatus.PREPARANDO) }, colors)
+        FilterPill("Enviado", selected == OrderStatus.ENVIADO, { onSelected(OrderStatus.ENVIADO) }, colors)
     }
+    // estudiante: estos chips podrían ser Sticky + scroll horizontal cuando haya más estados
 }
 
 @Composable
@@ -202,21 +195,22 @@ private fun FilterPill(
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
-        color = if (selected) colors.primary.copy(alpha = 0.16f) else colors.surface,
-        border = if (selected)
-            BorderStroke(1.dp, colors.primary)
-        else
-            BorderStroke(1.dp, colors.outline.copy(alpha = 0.8f))
+        color = if (selected) colors.primary.copy(alpha = 0.12f) else colors.surface,
+        border = BorderStroke(
+            1.dp,
+            if (selected) colors.primary else colors.outlineVariant
+        )
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-            ),
-            color = if (selected) colors.onSurface else colors.onSurface
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                color = colors.onSurface
+            )
         )
     }
+    // estudiante: “botoncito” de limpiar filtros a la derecha cuando haya algo seleccionado
 }
 
 @Composable
@@ -225,11 +219,11 @@ private fun OrderCard(
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val statusChip = when (order.status) {
-        OrderStatus.PENDIENTE   -> "Pendiente" to colors.secondary
+    val (statusText, statusColor) = when (order.status) {
+        OrderStatus.PENDIENTE   -> "Pendiente"  to colors.secondary
         OrderStatus.PREPARANDO  -> "Preparando" to colors.primary
-        OrderStatus.ENVIADO     -> "Enviado" to colors.tertiary
-        OrderStatus.TODOS       -> "" to colors.outline
+        OrderStatus.ENVIADO     -> "Enviado"    to colors.tertiary
+        OrderStatus.TODOS       -> ""           to colors.outline
     }
 
     Card(
@@ -237,7 +231,7 @@ private fun OrderCard(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.35f))
+        border = BorderStroke(1.dp, colors.outlineVariant)
     ) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
 
@@ -245,7 +239,10 @@ private fun OrderCard(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "${order.id} · ${order.dateTime}",
-                    style = MaterialTheme.typography.labelLarge.copy(color = colors.onSurface.copy(alpha = 0.8f))
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = colors.onSurfaceVariant
+                    ),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
@@ -262,52 +259,103 @@ private fun OrderCard(
             // Nombre comprador
             Text(
                 text = order.buyerName,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.onSurface
+                )
             )
             Text(
                 text = "${order.buyerHandle} — ${order.itemsText}",
-                style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurface.copy(alpha = 0.7f))
+                style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurfaceVariant),
+                maxLines = 1, overflow = TextOverflow.Ellipsis
             )
 
             Spacer(Modifier.height(12.dp))
 
             // Estado + "Ver detalle"
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (statusChip.first.isNotEmpty()) {
-                    StatusPill(text = statusChip.first, color = statusChip.second)
+                if (statusText.isNotEmpty()) {
+                    StatusPill(text = statusText, color = statusColor)
                 }
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = "Ver detalle →",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = colors.onSurface
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.onSurface
+                    )
                 )
             }
         }
     }
+    // estudiante: meter “botoncito” contextual (3 puntitos) dentro de la card para acciones rápidas
 }
 
 @Composable
-private fun StatusPill(text: String, color: Color) {
+private fun StatusPill(text: String, color: androidx.compose.ui.graphics.Color) {
+    val colors = MaterialTheme.colorScheme
     Surface(
         shape = RoundedCornerShape(24.dp),
-        color = color.copy(alpha = 0.16f),
+        color = color.copy(alpha = 0.14f),
         border = BorderStroke(1.dp, color)
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.labelLarge.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = colors.onSurface
+            )
+        )
+    }
+}
+
+/* ------------------------------ Empty State ------------------------------- */
+
+@Composable
+private fun EmptyState(
+    title: String,
+    subtitle: String
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // estudiante: aquí pondría un iconito ilustrativo y un CTA para limpiar filtros
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = colors.onSurface
+            )
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurfaceVariant),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
 }
 
 /* --------------------------------- Preview -------------------------------- */
 
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_6")
+@Preview(showBackground = true, showSystemUi = true, name = "Orders – Light")
 @Composable
-private fun OrdersScreenPreview() {
-    FitMatchTheme {
+private fun OrdersScreenPreviewLight() {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
+        OrdersScreen()
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Orders – Dark")
+@Composable
+private fun OrdersScreenPreviewDark() {
+    FitMatchTheme(darkTheme = true, dynamicColor = false) {
         OrdersScreen()
     }
 }
