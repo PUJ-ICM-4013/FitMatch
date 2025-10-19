@@ -29,20 +29,19 @@ import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.LoginViewMode
 import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.RegisterViewModel
 import com.example.fitmatch.presentation.ui.screens.cliente.CartScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ClienteDashboardScreen
-import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.FavoritesScreen
-import com.example.fitmatch.presentation.ui.screens.cliente.PreferencesFlowScreen
-import com.example.fitmatch.presentation.ui.screens.cliente.ProfileScreen
-import com.example.fitmatch.presentation.ui.screens.common.ChatListScreen
-import com.example.fitmatch.presentation.ui.screens.common.ChatScreen
-import com.example.fitmatch.presentation.ui.screens.common.DeliveryPickupScreen
-import com.example.fitmatch.presentation.ui.screens.common.NotificationsScreen
-import com.example.fitmatch.presentation.ui.screens.common.OrdersScreen
-import com.example.fitmatch.presentation.ui.screens.common.ProductDetailScreen
-import com.example.fitmatch.presentation.ui.screens.common.SearchScreen
-import com.example.fitmatch.presentation.ui.screens.common.StoreProfileScreen
-import com.example.fitmatch.presentation.ui.screens.common.TitoChatScreen
 import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
+import com.example.fitmatch.presentation.ui.screens.cliente.ui.PreferencesFlowScreen
+import com.example.fitmatch.presentation.ui.screens.cliente.ui.ProfileScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.ChatListScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.ChatScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.DeliveryPickupScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.NotificationsScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.OrdersScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.ProductDetailScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
+import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
 
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 

@@ -23,41 +23,31 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
+import com.example.fitmatch.presentation.ui.screens.cliente.state.FavoriteProductState
+import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.FavoritesViewModel
 
-/* ---------- Modelo de datos ---------- */
-data class FavoriteProduct(
-    val id: String,
-    val category: String,
-    val title: String,
-    val subtitle: String? = null,
-    val price: String,
-    val inCartCount: Int = 0
-)
 
-/* ---------- Pantalla ---------- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoritesScreen(
-    filters: List<Pair<String, Int>> = listOf(
-        "Todas" to 26, "Streetwear" to 8, "Oficina" to 5, "Evento" to 7
-    ),
-    products: List<FavoriteProduct> = sampleFavorites,
     onBack: () -> Unit = {},
+    onCartClick: () -> Unit = {},
     onAddCategory: () -> Unit = {},
-    onOpenProduct: (FavoriteProduct) -> Unit = {},
-    onCartClick: (FavoriteProduct) -> Unit = {}
+    onOpenProduct: (String) -> Unit = {},
+    viewModel: FavoritesViewModel = viewModel()
 ) {
     val colors = MaterialTheme.colorScheme
-    var selectedFilter by remember { mutableStateOf(filters.first().first) }
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = colors.background,
         topBar = {
-            // Header unificado: título centrado + back + acción "+"
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 color = colors.surface,
                 tonalElevation = 1.dp,
                 shadowElevation = 1.dp
@@ -67,7 +57,6 @@ fun FavoritesScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    // Back
                     IconButton(
                         onClick = onBack,
                         modifier = Modifier.align(Alignment.CenterStart)
@@ -79,7 +68,6 @@ fun FavoritesScreen(
                         )
                     }
 
-                    // Título centrado (misma tipografía)
                     Text(
                         text = "Favoritos",
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -90,7 +78,6 @@ fun FavoritesScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
 
-                    // Acción: agregar categoría (+)
                     Row(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
@@ -107,60 +94,121 @@ fun FavoritesScreen(
             }
         }
     ) { inner ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner)
-                .padding(horizontal = 16.dp)
-        ) {
-            /* Chips de filtros */
-            Row(
+        if (uiState.isLoading) {
+            // Estado de carga
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxSize()
+                    .padding(inner),
+                contentAlignment = Alignment.Center
             ) {
-                filters.forEach { (name, count) ->
-                    FilterChip(
-                        selected = selectedFilter == name,
-                        onClick = { selectedFilter = name },
-                        label = {
-                            Text("$name $count", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    )
-                }
+                CircularProgressIndicator()
             }
-
-            /* Grid de tarjetas (2 columnas) */
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        } else if (uiState.isEmpty) {
+            // Estado vacío
+            EmptyFavoritesState(
+                onBack = onBack,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+                    .padding(horizontal = 16.dp)
             ) {
-                items(products) { p ->
-                    FavoriteCard(
-                        product = p,
-                        onOpen = { onOpenProduct(p) },
-                        onCart = { onCartClick(p) }
-                    )
+                /* Chips de filtros */
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    uiState.filters.forEach { filter ->
+                        FilterChip(
+                            selected = uiState.selectedFilter == filter.name,
+                            onClick = { viewModel.onFilterSelected(filter.name) },
+                            label = {
+                                Text(
+                                    "${filter.name} ${filter.count}",
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        )
+                    }
+                }
+
+                /* Grid de tarjetas (2 columnas) */
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.filteredProducts, key = { it.id }) { product ->
+                        FavoriteCard(
+                            product = product,
+                            onOpen = { onOpenProduct(product.id) },
+                            onCart = { viewModel.onAddToCart(product.id) }
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/* ---------- Tarjeta de producto ---------- */
+//composables
+@Composable
+private fun EmptyFavoritesState(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "❤️",
+            fontSize = 64.sp
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "No tienes favoritos aún",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Guarda productos para verlos aquí",
+            color = colors.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = onBack,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Explorar productos")
+        }
+    }
+}
+
 @Composable
 private fun FavoriteCard(
-    product: FavoriteProduct,
+    product: FavoriteProductState,
     onOpen: () -> Unit,
     onCart: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
 
-    ElevatedCard( // sombra perceptible también en dark
+    ElevatedCard(
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface),
@@ -171,13 +219,13 @@ private fun FavoriteCard(
     ) {
         Column(Modifier.padding(12.dp)) {
 
-            /* Fila superior: “Prenda” (o categoría) + menú */
+            /* Fila superior: categoría + menú */
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Prenda",
+                    text = product.category,
                     fontSize = 12.sp,
                     color = colors.onSurfaceVariant
                 )
@@ -203,7 +251,8 @@ private fun FavoriteCard(
                     text = "Carrusel\n(fotos / video)",
                     color = colors.onSurfaceVariant,
                     fontSize = 12.sp,
-                    lineHeight = 14.sp
+                    lineHeight = 14.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
 
@@ -233,7 +282,7 @@ private fun FavoriteCard(
                 )
                 Spacer(Modifier.weight(1f))
 
-                /* Carrito con “badge” de cantidad */
+                /* Carrito con "badge" de cantidad */
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -269,18 +318,6 @@ private fun FavoriteCard(
         }
     }
 }
-
-/* ---------- Datos de ejemplo ---------- */
-private val sampleFavorites = listOf(
-    FavoriteProduct("1", "Oficina", "Blazer Sastre", price = "$189.900"),
-    FavoriteProduct("2", "Streetwear", "Sneakers Eco", price = "$239.900", inCartCount = 2),
-    FavoriteProduct("3", "Jeans", "Jeans Classic", price = "$129.900"),
-    FavoriteProduct("4", "Zapatos", "Sandalias Midi", price = "$159.900"),
-    FavoriteProduct("5", "Eventos", "Vestido Gala", price = "$329.900"),
-    FavoriteProduct("6", "Streetwear", "Bolso Mini", price = "$159.900")
-)
-
-/* ---------- Previews con tu tema ---------- */
 @Preview(showBackground = true, name = "Favoritos – Light")
 @Composable
 private fun FavoritesPreviewLight() {

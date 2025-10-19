@@ -11,83 +11,49 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
-
-/* ---------------------------- Model / Mock data ---------------------------- */
-
-data class CartItem(
-    val id: String,
-    val title: String,
-    val shop: String,
-    val price: Int,         // en pesos
-    val size: String,
-    val color: String,
-)
-
-private fun mockCart(): List<CartItem> = listOf(
-    CartItem("1", "Blazer Premium en Lino", "@ateliernova", 189_900, "M", "Negro"),
-    CartItem("2", "Pantalón Wide Leg", "@lunaurban", 129_900, "S", "Beige"),
-)
-
-/* --------------------------------- Screen --------------------------------- */
+import com.example.fitmatch.presentation.ui.screens.cliente.state.CartItemState
+import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
     onBackClick: () -> Unit = {},
-    onMenu: () -> Unit = {},
     onCheckoutClick: () -> Unit = {},
+    viewModel: CartViewModel = viewModel()
 ) {
     val colors = MaterialTheme.colorScheme
 
-    // usar saveable para no perder cantidades si rota (guardamos como lista simple)
-    var items by rememberSaveable(stateSaver = listSaver(
-        save = { list -> list.flatMap { li -> listOf(li.id, li.title, li.shop, li.price.toString(), li.size, li.color) } },
-        restore = { flat ->
-            flat.chunked(6).map { fields ->
-                val id = fields[0]
-                val title = fields[1]
-                val shop = fields[2]
-                val price = fields[3].toInt()
-                val size = fields[4]
-                val color = fields[5]
-                CartItem(id, title, shop, price, size, color)
-            }
+    // observer
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Mostrar Snackbar si hay error
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.onDismissError()
         }
-    )) { mutableStateOf(mockCart()) }
-
-    // cantidades por id (state map simple; si quieres también saveable, crea saver propio)
-    val qty = remember { mutableStateMapOf("1" to 1, "2" to 2) }
-
-    // Cálculos
-    val subtotal = items.sumOf { it.price * (qty[it.id] ?: 1) }
-    val envio = 9_900
-    val descuento = 20_000
-    val total = subtotal + envio - descuento
-
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = colors.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            // ===== Header unificado: título centrado + back + acciones (color/elevación como Notificaciones) =====
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 color = colors.surface,
                 tonalElevation = 1.dp,
                 shadowElevation = 1.dp
@@ -97,7 +63,6 @@ fun CartScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    // Back
                     IconButton(
                         onClick = onBackClick,
                         modifier = Modifier.align(Alignment.CenterStart)
@@ -109,9 +74,8 @@ fun CartScreen(
                         )
                     }
 
-                    // Título centrado (tipografía/tamaño como pediste)
                     Text(
-                        text = "Cesta",
+                        text = "Cesta (${uiState.itemCount})",
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -122,12 +86,11 @@ fun CartScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
 
-                    // Acciones a la derecha (se mantienen)
                     Row(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onMenu) {
+                        IconButton(onClick = { /* Menu */ }) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = "Menú",
@@ -139,75 +102,131 @@ fun CartScreen(
             }
         },
     ) { inner ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(inner)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            // 1) Items del carrito
-            items(items, key = { it.id }) { item ->
-                CartItemCard(
-                    item = item,
-                    quantity = qty[item.id] ?: 1,
-                    onMinus = { val c = qty[item.id] ?: 1; if (c > 1) qty[item.id] = c - 1 },
-                    onPlus  = { val c = qty[item.id] ?: 1; qty[item.id] = c + 1 },
-                    onRemove = {
-                        items = items.filterNot { it.id == item.id }
-                        qty.remove(item.id)
-                    }
-                )
-            }
-
-            // 2) Espacio
-            item { Spacer(Modifier.height(4.dp)) }
-
-            // 3) Cupón
-            item {
-                CouponCard(onApply = { /* validar cupón */ })
-            }
-
-            // 4) Resumen
-            item {
-                SummaryCard(
-                    subtotal = subtotal,
-                    envio = envio,
-                    descuento = descuento,
-                    total = total
-                )
-            }
-
-            // 5) Botón Checkout
-            item {
-                Button(
-                    onClick = onCheckoutClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    ),
-                    enabled = items.isNotEmpty()
-                ) {
-                    Text("TRAMITAR PEDIDO", fontWeight = FontWeight.SemiBold)
+        if (uiState.isEmpty) {
+            // Estado vacío
+            EmptyCartState(
+                onBackClick = onBackClick,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                // Items del carrito
+                items(uiState.items, key = { it.id }) { item ->
+                    CartItemCard(
+                        item = item,
+                        onMinus = { viewModel.onDecreaseQuantity(item.id) },
+                        onPlus = { viewModel.onIncreaseQuantity(item.id) },
+                        onRemove = { viewModel.onRemoveItem(item.id) }
+                    )
                 }
-            }
 
-            item { Spacer(Modifier.height(12.dp)) }
+                item { Spacer(Modifier.height(4.dp)) }
+
+                // Cupón
+                item {
+                    CouponCard(
+                        couponCode = uiState.couponCode,
+                        onCouponCodeChanged = { viewModel.onCouponCodeChanged(it) },
+                        onApply = { viewModel.onApplyCoupon() },
+                        isLoading = uiState.isLoading
+                    )
+                }
+
+                // Resumen
+                item {
+                    SummaryCard(
+                        subtotal = uiState.subtotal,
+                        envio = uiState.shippingCost,
+                        descuento = uiState.appliedDiscount,
+                        total = uiState.total
+                    )
+                }
+
+                // Botón Checkout
+                item {
+                    Button(
+                        onClick = {
+                            viewModel.onCheckout(onSuccess = onCheckoutClick)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colors.primary,
+                            contentColor = colors.onPrimary
+                        ),
+                        enabled = !uiState.isProcessingCheckout
+                    ) {
+                        if (uiState.isProcessingCheckout) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = colors.onPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                "TRAMITAR PEDIDO",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+
+                item { Spacer(Modifier.height(12.dp)) }
+            }
+        }
+    }
+}
+//composables
+@Composable
+private fun EmptyCartState(
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "🛒",
+            fontSize = 64.sp
+        )
+        Spacer(Modifier.height(16.dp))
+        Text(
+            text = "Tu carrito está vacío",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Agrega productos para comenzar tu compra",
+            color = colors.onSurfaceVariant
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = onBackClick,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Explorar productos")
         }
     }
 }
 
-/* --------------------------------- Items --------------------------------- */
-
 @Composable
 private fun CartItemCard(
-    item: CartItem,
-    quantity: Int,
+    item: CartItemState,
     onMinus: () -> Unit,
     onPlus: () -> Unit,
     onRemove: () -> Unit
@@ -247,11 +266,10 @@ private fun CartItemCard(
 
                 Spacer(Modifier.weight(1f))
 
-                QuantityControl(qty = quantity, onMinus = onMinus, onPlus = onPlus)
+                QuantityControl(qty = item.quantity, onMinus = onMinus, onPlus = onPlus)
 
                 Spacer(Modifier.width(8.dp))
 
-                // botoncito “eliminar”
                 Surface(
                     onClick = onRemove,
                     shape = CircleShape,
@@ -298,7 +316,7 @@ private fun QuantityControl(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SmallSquareButton(text = "−", onClick = onMinus)
+        SmallSquareButton(text = "−", onClick = onMinus, enabled = qty > 1)
         Surface(
             modifier = Modifier.widthIn(min = 40.dp),
             shape = RoundedCornerShape(8.dp),
@@ -313,15 +331,16 @@ private fun QuantityControl(qty: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
                 color = colors.onSurface
             )
         }
-        SmallSquareButton(text = "+", onClick = onPlus)
+        SmallSquareButton(text = "+", onClick = onPlus, enabled = true)
     }
 }
 
 @Composable
-private fun SmallSquareButton(text: String, onClick: () -> Unit) {
+private fun SmallSquareButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
     val colors = MaterialTheme.colorScheme
     Surface(
         onClick = onClick,
+        enabled = enabled,
         shape = RoundedCornerShape(8.dp),
         color = colors.surface,
         border = BorderStroke(1.dp, colors.outline.copy(alpha = 0.35f))
@@ -330,19 +349,19 @@ private fun SmallSquareButton(text: String, onClick: () -> Unit) {
             text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
             style = MaterialTheme.typography.labelLarge,
-            color = colors.onSurface
+            color = if (enabled) colors.onSurface else colors.onSurfaceVariant.copy(alpha = 0.5f)
         )
     }
 }
 
-/* --------------------------------- Cupón --------------------------------- */
-
 @Composable
 private fun CouponCard(
-    onApply: (String) -> Unit
+    couponCode: String,
+    onCouponCodeChanged: (String) -> Unit,
+    onApply: () -> Unit,
+    isLoading: Boolean
 ) {
     val colors = MaterialTheme.colorScheme
-    var code by remember { mutableStateOf("") }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -361,11 +380,12 @@ private fun CouponCard(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
-                    value = code,
-                    onValueChange = { code = it },
+                    value = couponCode,
+                    onValueChange = onCouponCodeChanged,
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Código", color = colors.onSurfaceVariant) },
                     singleLine = true,
+                    enabled = !isLoading,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colors.primary,
@@ -379,18 +399,25 @@ private fun CouponCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Button(
-                    onClick = { onApply(code) },
+                    onClick = onApply,
                     modifier = Modifier.height(48.dp),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !isLoading && couponCode.isNotBlank()
                 ) {
-                    Text("Aplicar", fontWeight = FontWeight.SemiBold)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = colors.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Aplicar", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }
     }
 }
-
-/* -------------------------------- Resumen -------------------------------- */
 
 @Composable
 private fun SummaryCard(
@@ -411,7 +438,9 @@ private fun SummaryCard(
             Spacer(Modifier.height(12.dp))
             RowLine("Subtotal", "$${formatPrice(subtotal)}")
             RowLine("Envío (estimado)", "$${formatPrice(envio)}")
-            RowLine("Descuento", "-$${formatPrice(descuento)}")
+            if (descuento > 0) {
+                RowLine("Descuento", "-$${formatPrice(descuento)}", isDiscount = true)
+            }
             HorizontalDivider(
                 Modifier.padding(vertical = 8.dp),
                 DividerDefaults.Thickness,
@@ -440,23 +469,25 @@ private fun SummaryCard(
 }
 
 @Composable
-private fun RowLine(label: String, value: String) {
+private fun RowLine(label: String, value: String, isDiscount: Boolean = false) {
     val colors = MaterialTheme.colorScheme
     Row(
         Modifier.fillMaxWidth().padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (isDiscount) colors.primary else colors.onSurface
+        )
     }
 }
 
 private fun formatPrice(value: Int): String =
     "%,d".format(value).replace(',', '.')
 
-/* --------------------------------- Preview -------------------------------- */
-
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_6")
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun CartScreenPreview() {
     FitMatchTheme {
