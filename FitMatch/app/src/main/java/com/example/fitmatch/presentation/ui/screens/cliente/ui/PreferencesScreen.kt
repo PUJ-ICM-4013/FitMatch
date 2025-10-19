@@ -1,4 +1,4 @@
-package com.example.fitmatch.presentation.ui.screens.cliente
+package com.example.fitmatch.presentation.ui.screens.cliente.ui
 
 import com.example.compose.FitMatchTheme
 import androidx.compose.foundation.background

@@ -1,4 +1,4 @@
-package com.example.fitmatch.presentation.ui.screens.common
+package com.example.fitmatch.presentation.ui.screens.common.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
