@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { // ¡Este lambda SÍ es el contexto composable!
+        setContent {
             FitMatchTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
