@@ -24,22 +24,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.R
+import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onBackClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {}
+    onLoginSuccess: () -> Unit = {},
+    onForgotPasswordClick: () -> Unit = {},
+    viewModel: LoginViewModel = viewModel()
 ) {
     val colors = MaterialTheme.colorScheme
 
-    // usar saveable para rotación / proceso muerto
-    var emailOrPhone by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var showPassword by rememberSaveable { mutableStateOf(false) }
+    // collectAsStateWithLifecycle respeta el ciclo de vida del Composable
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
 
     Scaffold(
         containerColor = colors.background,
@@ -104,10 +107,15 @@ fun LoginScreen(
 
             /* ------------------------ Email / Teléfono ------------------------ */
             OutlinedTextField(
-                value = emailOrPhone,
-                onValueChange = { emailOrPhone = it },
+                value = uiState.emailOrPhone, //lee del estado
+                onValueChange = { viewModel.onEmailOrPhoneChanged(it) },
                 label = { Text("Introduce tu cuenta") },
-                placeholder = { Text("Correo o número de teléfono", color = colors.onSurfaceVariant) },
+                placeholder = {
+                    Text(
+                        "Correo o número de teléfono",
+                        color = colors.onSurfaceVariant
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -128,19 +136,22 @@ fun LoginScreen(
 
             /* ----------------------------- Password --------------------------- */
             OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
+                value = uiState.password,
+                onValueChange = { viewModel.onPasswordChanged(it) },
                 label = { Text("Contraseña") },
                 placeholder = { Text("Mínimo 8 caracteres", color = colors.onSurfaceVariant) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (uiState.showPassword)
+                    VisualTransformation.None
+                else
+                    PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 trailingIcon = {
-                    IconButton(onClick = { showPassword = !showPassword }) {
+                    IconButton(onClick = { viewModel.onTogglePasswordVisibility() }) {
                         Icon(
-                            imageVector = if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (showPassword) "Ocultar contraseña" else "Mostrar contraseña",
+                            imageVector = if (uiState.showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                            contentDescription = if (uiState.showPassword) "Ocultar contraseña" else "Mostrar contraseña",
                             tint = colors.onSurfaceVariant
                         )
                     }
@@ -167,10 +178,25 @@ fun LoginScreen(
                 style = MaterialTheme.typography.labelLarge.copy(color = colors.primary),
                 modifier = Modifier
                     .align(Alignment.Start)
-                    .clickable { onForgotPasswordClick() }
+                    .clickable {
+                        viewModel.onForgotPasswordClick()
+                        onForgotPasswordClick()
+                    }
                     .padding(vertical = 8.dp)
             )
 
+            Spacer(Modifier.weight(1f))
+            //error
+            if (uiState.errorMessage != null) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = uiState.errorMessage!!,
+                    color = colors.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             Spacer(Modifier.weight(1f))
 
             // Personaje "Tito" (imagen desde drawable)
@@ -185,11 +211,13 @@ fun LoginScreen(
 
             // Botón principal
             Button(
-                onClick = onLoginClick,
+                onClick = {
+                    viewModel.onLoginClick(onSuccess = onLoginSuccess) // ← Evento con callback
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = emailOrPhone.isNotBlank() && password.isNotBlank(),
+                enabled = uiState.isLoginEnabled && !uiState.isLoading, // ← Estado controla habilitación
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
                     contentColor = colors.onPrimary,
@@ -198,16 +226,24 @@ fun LoginScreen(
                 ),
                 shape = MaterialTheme.shapes.large
             ) {
-                Text(
-                    text = "Continuar",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
-                )
+                if (uiState.isLoading) {
+                    // Mostrar indicador de carga
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = colors.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Continuar",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Medium
+                        )
+                    )
+                }
             }
-
-            Spacer(Modifier.height(24.dp))
         }
-    }
-}
+    }}
 
 // Con el heytitoTheme
 

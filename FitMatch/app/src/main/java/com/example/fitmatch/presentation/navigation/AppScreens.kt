@@ -11,7 +11,6 @@ sealed class AppScreens (val route: String) {
     object Search : AppScreens("search")
     object ProductDetail : AppScreens("product_detail")
     object Cart : AppScreens("cart")
-    object CreateProduct : AppScreens("create_product")
     object Orders : AppScreens("orders")
     object DeliveryPickup : AppScreens("delivery_pickup")
     object Chat : AppScreens("chat/{chatId}")

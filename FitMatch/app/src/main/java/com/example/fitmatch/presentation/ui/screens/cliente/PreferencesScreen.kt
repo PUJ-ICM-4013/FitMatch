@@ -1,5 +1,6 @@
 package com.example.fitmatch.presentation.ui.screens.cliente
 
+import com.example.compose.FitMatchTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.compose.FitMatchTheme
 import kotlinx.coroutines.launch
 
 // Enum para los diferentes tipos de pantalla
@@ -388,10 +388,10 @@ fun PreferencesFlowScreen(
                 // Usa UNA de las dos líneas según tu versión de Material3:
                 // LinearProgressIndicator(progress = { progress })   // versiones nuevas
                 LinearProgressIndicator(
-                progress = { progress },
+                    progress = { progress },
                     color = ProgressIndicatorDefaults.linearColor,
-                trackColor = ProgressIndicatorDefaults.linearTrackColor,
-                strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
+                    trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                    strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 )          // versiones que esperan Float
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -441,6 +441,6 @@ fun PreferencesFlowScreen(
 @Composable
 private fun PreferencesPreviewDark() {
     FitMatchTheme(darkTheme = true, dynamicColor = false) {
-        PreferencesScreen(preferenceType = PreferenceType.COLORS)
-    }
+         PreferencesScreen(preferenceType = PreferenceType.COLORS)
+     }
 }

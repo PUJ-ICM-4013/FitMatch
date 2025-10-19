@@ -29,6 +29,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -37,9 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.compose.FitMatchTheme
 import kotlinx.coroutines.launch
-
-
-/* Model / Mock data  */
 
 data class ProductCard(
     val id: String,
@@ -75,7 +74,8 @@ private fun mockProducts(): List<ProductCard> = listOf(
 fun ClienteDashboardScreen(
     onBackClick: () -> Unit = {},
     onOpenStore: (ProductCard) -> Unit = {},
-    onFilterClick: () ->Unit ={},
+    onFilterClick: () -> Unit = {},
+    onViewProfile: () -> Unit = {},
     onProductSeen: (ProductCard) -> Unit = {},
     onProductLiked: (ProductCard) -> Unit = {},
     onProductPassed: (ProductCard) -> Unit = {},
@@ -95,7 +95,6 @@ fun ClienteDashboardScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
-        containerColor = colors.background,
         topBar = {
             // Header unificado: título centrado + back + acción "+"
             Surface(
@@ -138,10 +137,17 @@ fun ClienteDashboardScreen(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        IconButton(onClick = onViewProfile) {
+                            Icon(
+                                imageVector = Icons.Filled.Person,
+                                contentDescription = "Mi perfil",
+                                tint = colors.onSurface
+                            )
+                        }
                         IconButton(onClick = onFilterClick) {
                             Icon(
                                 imageVector = Icons.Filled.FilterAlt,
-                                contentDescription = "Filtrar",
+                                contentDescription = "filtrar",
                                 tint = colors.onSurface
                             )
                         }
@@ -670,8 +676,8 @@ private suspend fun animateCardExit(toRight: Boolean, size: IntSize, offset: Ani
 
 /* --------------------------------- Preview -------------------------------- */
 
-@Preview(showBackground = true, showSystemUi = true, device = "id:pixel_6")
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun DiscoverScreenPreview() {
-    FitMatchTheme(dynamicColor = false) { ClienteDashboardScreen () }
+    FitMatchTheme { ClienteDashboardScreen() }
 }

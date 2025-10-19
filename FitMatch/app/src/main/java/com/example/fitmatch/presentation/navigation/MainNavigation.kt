@@ -10,10 +10,9 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -26,9 +25,13 @@ import com.example.fitmatch.presentation.ui.components.BottomNavigationBar
 import com.example.fitmatch.presentation.ui.screens.auth.ui.LoginScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.RegisterScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.WelcomeScreen
+import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.LoginViewModel
+import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.RegisterViewModel
 import com.example.fitmatch.presentation.ui.screens.cliente.CartScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ClienteDashboardScreen
+import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.FavoritesScreen
+import com.example.fitmatch.presentation.ui.screens.cliente.PreferencesFlowScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ChatListScreen
 import com.example.fitmatch.presentation.ui.screens.common.ChatScreen
@@ -39,6 +42,8 @@ import com.example.fitmatch.presentation.ui.screens.common.ProductDetailScreen
 import com.example.fitmatch.presentation.ui.screens.common.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.TitoChatScreen
+import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
+
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 
 @Composable
@@ -139,26 +144,64 @@ fun MainNavigation() {
             }
 
             composable(AppScreens.Login.route) {
-                LoginScreen(
-                    onLoginClick = { navController.navigate(AppScreens.Home.withRole("Cliente")) },
-                    onBackClick = { navController.popBackStack() },
-                    onForgotPasswordClick = {}
-                )
-            }
+                // ViewModel con scope a este destino de navegación
+                val loginViewModel: LoginViewModel = viewModel()
 
-            composable(AppScreens.Register.route) {
-                var role by remember { mutableStateOf("Cliente") }
-                RegisterScreen(
-                    onRoleClick = { role = it },
-                    onRegisterClick = {
-                        navController.navigate(AppScreens.Home.withRole(role)) {
+                LoginScreen(
+                    viewModel = loginViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onLoginSuccess = {
+                        // Navegar a Home (por defecto Cliente)
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
                             popUpTo(AppScreens.Welcome.route) { inclusive = true }
                             launchSingleTop = true
                         }
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onForgotPasswordClick = {
+                        // TODO: Implementar recuperación de contraseña
+                    }
                 )
             }
+
+            composable(AppScreens.Register.route) {
+                // ViewModel con scope a este destino
+                val registerViewModel: RegisterViewModel = viewModel()
+
+                RegisterScreen(
+                    viewModel = registerViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onRegisterSuccess = { role ->
+                        // CAMBIO: Solo clientes van a Preferences, vendedores van directo a su home
+                        if (role.equals("Vendedor", ignoreCase = true)) {
+                            navController.navigate(AppScreens.Home.withRole(role)) {
+                                popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        } else {
+                            // Clientes van a Preferences
+                            navController.navigate(AppScreens.Preferences.route) {
+                                popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            }
+            composable(AppScreens.Preferences.route) {
+                PreferencesFlowScreen (
+                    onBackToRegister = { navController.popBackStack() },
+                    onFinishClick = { selections ->
+                        // Aquí ya tienes un Map<PreferenceType, Set<String>>
+                        // con lo que eligió el usuario en cada categoría
+                        // TODO: Guardar en ViewModel / backend
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+
 
             // Home con rol
             composable(
@@ -167,25 +210,24 @@ fun MainNavigation() {
             ) { backStackEntry ->
                 val role = backStackEntry.arguments?.getString("role") ?: "Cliente"
 
-                // Si tienes pantalla específica de Vendedor, úsala aquí
                 if (role.equals("Vendedor", ignoreCase = true)) {
-                    // TODO: Reemplaza por tu pantalla real de vendedor si existe
-                    ClienteDashboardScreen(
-                        onBackClick = { navController.popBackStack() },
-                        onOpenStore = { navController.navigate(AppScreens.StoreProfile.route) },
-                        onProductSeen = { navController.navigate(AppScreens.ProductDetail.route) },
-                        onProductLiked = {},
-                        onProductPassed = {},
-                        onFilterClick = { navController.navigate(AppScreens.Search.route) }
+                    VendedorDashboardScreen(
+                        onEnviosClick = {},
+                        onComentariosClick = {},
+                        onEstadisticasClick = {},
+                        onMisPedidosClick = {},
+                        onAgregarProductoClick = {},
+                        onMostrarProductosClick = {}
                     )
                 } else {
                     ClienteDashboardScreen(
                         onBackClick = { navController.popBackStack() },
-                        onOpenStore = { navController.navigate(AppScreens.StoreProfile.route) },
-                        onProductSeen = { navController.navigate(AppScreens.ProductDetail.route) },
-                        onProductLiked = {},
-                        onProductPassed = {},
-                        onFilterClick = { navController.navigate(AppScreens.Search.route) }
+                        //onFollowClick = { },
+                        //onProductClick = { navController.navigate(AppScreens.ProductDetail.route) },
+                        //onStoreClick = { navController.navigate(AppScreens.StoreProfile.route) },
+                        onFilterClick = { navController.navigate(AppScreens.Search.route) },
+                        //onOpenComments = { /* ... */ },
+                        //onAddToCart = { /* ... */ }
                     )
                 }
             }
