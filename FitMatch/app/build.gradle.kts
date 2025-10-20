@@ -2,6 +2,11 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    id("com.android.application")
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -64,6 +69,20 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.activity.compose.v181)
     implementation("androidx.compose.material:material-icons-extended")
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+
+
+    implementation("com.firebaseui:firebase-ui-auth:9.0.0")
+
+    // Required only if Facebook login support is required
+    // Find the latest Facebook SDK releases here: https://goo.gl/Ce5L94
+    implementation("com.facebook.android:facebook-android-sdk:8.x")
+
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-auth")
 
     // build.gradle (Module: app)
 

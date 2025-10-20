@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "237240982581",
+    "project_id": "fitmatch-cf277",
+    "storage_bucket": "fitmatch-cf277.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:237240982581:android:978fa1ce61b5b8ff86e57c",
+        "android_client_info": {
+          "package_name": "com.example.fitmatch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALQdRtE6OVjx0HoO-qJhWtHdpflBm4eSY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
