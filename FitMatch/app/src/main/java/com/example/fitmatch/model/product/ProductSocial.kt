@@ -1,4 +1,4 @@
-package com.example.fitmatch.model
+package com.example.fitmatch.model.product
 
 data class ProductSocial(
     val productId: String,

@@ -1,4 +1,6 @@
-package com.example.fitmatch.model
+package com.example.fitmatch.model.order
+
+import com.google.firebase.Timestamp
 
 data class CartItem(
     val id: String,

@@ -1,4 +1,6 @@
-package com.example.fitmatch.model
+package com.example.fitmatch.model.product
+
+import com.google.firebase.Timestamp
 
 data class Favorite(
     val id: String,

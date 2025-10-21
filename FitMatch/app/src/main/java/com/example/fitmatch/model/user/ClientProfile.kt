@@ -1,4 +1,4 @@
-package com.example.fitmatch.model
+package com.example.fitmatch.model.user
 
 data class ClientProfile(
     val userId: String,

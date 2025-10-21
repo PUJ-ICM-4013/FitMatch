@@ -1,4 +1,4 @@
-package com.example.fitmatch.model
+package com.example.fitmatch.model.order
 
 data class Address(
     val id: String,
