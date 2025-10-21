@@ -107,7 +107,7 @@ fun LoginScreen(
 
             /* ------------------------ Email / Teléfono ------------------------ */
             OutlinedTextField(
-                value = uiState.emailOrPhone, //lee del estado
+                value = uiState.email, //lee del estado
                 onValueChange = { viewModel.onEmailOrPhoneChanged(it) },
                 label = { Text("Introduce tu cuenta") },
                 placeholder = {

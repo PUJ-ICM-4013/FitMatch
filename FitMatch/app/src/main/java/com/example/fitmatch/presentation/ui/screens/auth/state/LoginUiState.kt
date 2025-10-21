@@ -1,7 +1,7 @@
 package com.example.fitmatch.presentation.ui.screens.auth.state
 //propiedades necesarias para renderizar el login
 data class LoginUiState(
-    val emailOrPhone: String = "",
+    val email: String = "",
     val password: String = "",
     val showPassword: Boolean = false,
     val isLoading: Boolean = false,

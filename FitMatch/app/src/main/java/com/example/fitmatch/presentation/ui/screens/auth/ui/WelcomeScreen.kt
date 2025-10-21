@@ -25,7 +25,7 @@ fun WelcomeScreen(
     onCreateAccount: () -> Unit = {},
     onContinueWithEmail: () -> Unit = {},
     onContinueWithGoogle: () -> Unit = {},
-    onContinueWithApple: () -> Unit = {}
+    onContinueWithFacebook: () -> Unit = {}
 ) {
 
     val colors = MaterialTheme.colorScheme
@@ -109,7 +109,7 @@ fun WelcomeScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Continuar con Email o Teléfono",
+                            text = "Continuar con Email",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -146,9 +146,9 @@ fun WelcomeScreen(
                     }
                 }
 
-                // Botón Continuar con Apple
+                // Botón Continuar con Facebook
                 Button(
-                    onClick = onContinueWithApple,
+                    onClick = onContinueWithFacebook,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -165,7 +165,7 @@ fun WelcomeScreen(
                         // (Ícono Apple si luego lo agregas)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Continuar con Apple",
+                            text = "Continuar con Facebook",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )

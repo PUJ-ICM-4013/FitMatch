@@ -76,19 +76,16 @@ dependencies {
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
 
-
-    implementation("com.firebaseui:firebase-ui-auth:9.0.0")
-
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://goo.gl/Ce5L94
-    implementation("com.facebook.android:facebook-android-sdk:8.x")
+    implementation("com.facebook.android:facebook-android-sdk")
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
 
     implementation("com.google.firebase:firebase-auth")
-    implementation("androidx.credentials:credentials:1.5.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("androidx.credentials:credentials")
+    implementation("androidx.credentials:credentials-play-services-auth")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // build.gradle (Module: app)

@@ -50,7 +50,6 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("") }
 
-    val roleOptions = listOf("Comprador", "Vendedor")
     val scroll = rememberScrollState()
 
     Scaffold(
@@ -121,12 +120,12 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Email / Teléfono
+            // Email
             OutlinedTextField(
                 value = uiState.email,
                 onValueChange = { viewModel.onEmailChanged(it) },
-                label = { Text("Email o Teléfono") },
-                placeholder = { Text("ejemplo@email.com o +57 300 123 4567") },
+                label = { Text("Email") },
+                placeholder = { Text("ejemplo@email.com") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = colors.primary,
@@ -323,7 +322,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                roleOptions.forEach { role ->
+                RegisterUiState.ROLE_OPTIONS.forEach { role ->
                     FilterChip(
                         selected = uiState.selectedRole == role,
                         onClick = {
