@@ -85,6 +85,22 @@ class RegisterViewModel(
         }
     }
 
+    fun onPhoneChanged(value: String) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                phone = value,
+                errorMessage = null,
+                isRegisterEnabled = RegisterUiState.isValidForm(
+                    email = currentState.email,
+                    password = currentState.password,
+                    fullName = currentState.fullName,
+                    birthDate = currentState.birthDate,
+                    role = currentState.selectedRole
+                )
+            )
+        }
+    }
+
     fun onBirthDateChanged(value: String) {
         _uiState.update { currentState ->
             currentState.copy(
@@ -186,16 +202,16 @@ class RegisterViewModel(
                     city = currentState.city.trim(),
                     gender = currentState.selectedGender,
                     role = currentState.selectedRole,
-                    phone = null, // Se completará después si es necesario
+                    phone = currentState.phone,
                     createdAt = Timestamp.now(),
                     updatedAt = Timestamp.now(),
-                    profileCompleted = false // Se marcará como true después de preferences
+                    profileCompleted = true
                 )
 
                 val profileResult = authRepository.createUserProfile(user)
 
                 profileResult.onSuccess {
-                    // ✅ REGISTRO EXITOSO
+                    // REGISTRO EXITOSO
                     _uiState.update { it.copy(isLoading = false) }
                     onSuccess(currentState.selectedRole)
                 }.onFailure { exception ->
@@ -248,7 +264,7 @@ class RegisterViewModel(
      * Valida el formulario completo antes de enviar a Firebase.
      * @return String con mensaje de error o null si es válido
      */
-    private fun validateForm(state: RegisterUiState): String? {
+    private fun validateForm(state: RegisterUiState): String?{
         // Email vacío
         if (state.email.isBlank()) {
             return "El email es obligatorio"
@@ -304,7 +320,19 @@ class RegisterViewModel(
             return "La ciudad es obligatoria"
         }
 
-        return null // ✅ Formulario válido
+        if (state.phone.isBlank()) {
+            return "El numero de telefono es obligatorio"
+        }
+
+        if (!isValidPhone(state.phone)) {
+            return "El numero de telefono debe tener 10 dígitos"
+        }
+
+        if (state.selectedGender.isBlank()) {
+            return "Selecciona tu genero"
+        }
+
+        return null // Formulario válido
     }
 
     /**
@@ -323,5 +351,16 @@ class RegisterViewModel(
         // Acepta dd/mm/aaaa o dd-mm-aaaa
         val dateRegex = Regex("^\\d{1,2}[/-]\\d{1,2}[/-]\\d{4}$")
         return dateRegex.matches(date.trim())
+    }
+
+    /**
+     * Verifica que un número de teléfono tenga 10 dígitos.
+     * @param phone Número de teléfono a verificar.
+     * @return true si el número tiene 10 dígitos, false en caso contrario.
+     */
+    private fun isValidPhone(phone: String): Boolean {
+        // Acepta números con 10 dígitos
+        val phoneRegex = Regex("^\\d{10}$")
+        return phoneRegex.matches(phone.trim())
     }
 }

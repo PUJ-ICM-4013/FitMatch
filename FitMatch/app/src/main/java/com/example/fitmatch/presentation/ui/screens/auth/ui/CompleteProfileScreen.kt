@@ -2,9 +2,11 @@ package com.example.fitmatch.presentation.ui.screens.auth.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
+import com.example.fitmatch.presentation.ui.screens.auth.state.CompleteProfileUiState
 import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.CompleteProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,6 +32,7 @@ fun CompleteProfileScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedRole by remember { mutableStateOf("") }
 
     // Inicializar con el userId cuando se monta el composable
     LaunchedEffect(userId) {
@@ -151,12 +155,12 @@ fun CompleteProfileScreen(
                 )
             )
 
-            // Teléfono (opcional)
+            // Teléfono
             OutlinedTextField(
                 value = uiState.phone,
                 onValueChange = { viewModel.onPhoneChanged(it) },
-                label = { Text("Teléfono (Opcional)") },
-                placeholder = { Text("+57 300 123 4567") },
+                label = { Text("Numero de teléfono *") },
+                placeholder = { Text("Tu numero de telefono") },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !uiState.isLoading,
                 colors = OutlinedTextFieldDefaults.colors(
@@ -165,35 +169,107 @@ fun CompleteProfileScreen(
                 )
             )
 
+            // Género (ExposedDropdown)
+            ExposedDropdownMenuBox(
+                expanded = uiState.isGenderDropdownExpanded,
+                onExpandedChange = {
+                    if (!uiState.isLoading) {
+                        viewModel.onGenderDropdownToggle()
+                    }
+                }
+            ) {
+                OutlinedTextField(
+                    value = uiState.selectedGender,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Género *") },
+                    placeholder = { Text("Seleccionar") },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = null,
+                            tint = colors.onSurfaceVariant
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        cursorColor = colors.primary,
+                        focusedContainerColor = colors.surface,
+                        unfocusedContainerColor = colors.surface,
+                        focusedLabelColor = colors.primary,
+                        focusedTextColor = colors.onSurface,
+                        unfocusedTextColor = colors.onSurface
+                    ),
+                    singleLine = true,
+                    enabled = !uiState.isLoading
+                )
+                ExposedDropdownMenu(
+                    expanded = uiState.isGenderDropdownExpanded,
+                    onDismissRequest = { viewModel.onGenderDropdownToggle() }
+                ) {
+                    CompleteProfileUiState.GENDER_OPTIONS.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = { viewModel.onGenderSelected(option) }
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
 
-            // Rol
+            // ¿Cómo quieres usar la app?
             Text(
-                "¿Cómo usarás la app? *",
+                text = "¿Cómo quieres usar la app?",
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = colors.primary
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = uiState.selectedRole == "Cliente",
-                    onClick = {
-                        if (!uiState.isLoading) {
-                            viewModel.onRoleSelected("Cliente")
-                        }
-                    },
-                    label = { Text("Comprador") },
-                    enabled = !uiState.isLoading
-                )
-                FilterChip(
-                    selected = uiState.selectedRole == "Vendedor",
-                    onClick = {
-                        if (!uiState.isLoading) {
-                            viewModel.onRoleSelected("Vendedor")
-                        }
-                    },
-                    label = { Text("Vendedor") },
-                    enabled = !uiState.isLoading
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                CompleteProfileUiState.ROLE_OPTIONS.forEach { role ->
+                    FilterChip(
+                        selected = uiState.selectedRole == role,
+                        onClick = {
+                            if (!uiState.isLoading) {
+                                viewModel.onRoleSelected(role)
+                            }
+                        },
+                        label = { Text(role) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = colors.primary,
+                            selectedLabelColor = colors.onPrimary,
+                            containerColor = colors.surface,
+                            labelColor = colors.onSurface,
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selectedRole == role,
+                            borderColor = colors.outline,
+                            selectedBorderColor = colors.primary
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        enabled = !uiState.isLoading
+                    )
+                }
+            }
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = uiState.errorMessage!!,
+                    color = colors.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 

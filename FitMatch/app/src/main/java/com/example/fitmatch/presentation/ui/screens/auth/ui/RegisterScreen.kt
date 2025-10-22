@@ -210,6 +210,29 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Numero de telefono
+            OutlinedTextField(
+                value = uiState.phone,
+                onValueChange = { viewModel.onPhoneChanged(it) },
+                label = { Text("Numero de teléfono") },
+                placeholder = { Text("Tu numero de telefono") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline,
+                    cursorColor = colors.primary,
+                    focusedContainerColor = colors.surface,
+                    unfocusedContainerColor = colors.surface,
+                    focusedLabelColor = colors.primary,
+                    focusedTextColor = colors.onSurface,
+                    unfocusedTextColor = colors.onSurface
+                ),
+                singleLine = true,
+                enabled = !uiState.isLoading
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Fecha de Nacimiento
             OutlinedTextField(
                 value = uiState.birthDate,
@@ -268,7 +291,7 @@ fun RegisterScreen(
                     value = uiState.selectedGender,
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Género (Opcional)") },
+                    label = { Text("Género") },
                     placeholder = { Text("Seleccionar") },
                     trailingIcon = {
                         Icon(

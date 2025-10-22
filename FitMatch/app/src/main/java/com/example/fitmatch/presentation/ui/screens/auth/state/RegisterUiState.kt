@@ -8,6 +8,7 @@ data class RegisterUiState(
     val password: String = "",
     val fullName: String = "",
     val birthDate: String = "",
+    val phone: String = "",
     val city: String = "Bogotá, Colombia",
     val selectedGender: String = "",
     val selectedRole: String = "Comprador", // Default

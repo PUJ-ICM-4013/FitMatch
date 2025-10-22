@@ -37,6 +37,7 @@ class CompleteProfileViewModel(
                                 birthDate = it.birthDate,
                                 city = it.city.ifBlank { "Bogotá, Colombia" },
                                 phone = it.phone ?: "",
+                                selectedGender = it.gender,
                                 selectedRole = it.role.ifBlank { "Cliente" }
                             )
                         }
@@ -63,6 +64,23 @@ class CompleteProfileViewModel(
 
     fun onPhoneChanged(value: String) {
         _uiState.update { it.copy(phone = value, errorMessage = null) }
+        validateForm()
+    }
+
+    fun onGenderSelected(gender: String) {
+        _uiState.update {
+            it.copy(
+                selectedGender = gender,
+                isGenderDropdownExpanded = false
+            )
+        }
+        validateForm()
+    }
+
+    fun onGenderDropdownToggle() {
+        _uiState.update {
+            it.copy(isGenderDropdownExpanded = !it.isGenderDropdownExpanded)
+        }
     }
 
     fun onRoleSelected(role: String) {
@@ -70,12 +88,41 @@ class CompleteProfileViewModel(
         validateForm()
     }
 
-    private fun validateForm() {
+    private fun validateForm(): String?{
         val state = _uiState.value
-        val isValid = state.birthDate.isNotBlank() &&
-                state.city.isNotBlank() &&
-                state.selectedRole.isNotBlank()
-        _uiState.update { it.copy(isFormValid = isValid) }
+        // Fecha de nacimiento vacía
+        if (state.birthDate.isBlank()) {
+            return "La fecha de nacimiento es obligatoria"
+        }
+
+        // Validar formato de fecha (básico)
+        if (!isValidDateFormat(state.birthDate)) {
+            return "Formato de fecha inválido. Usa: dd/mm/aaaa"
+        }
+
+        // Rol no seleccionado
+        if (state.selectedRole.isBlank()) {
+            return "Selecciona cómo quieres usar la app"
+        }
+
+        // Ciudad vacía
+        if (state.city.isBlank()) {
+            return "La ciudad es obligatoria"
+        }
+
+        if (state.phone.isBlank()) {
+            return "El numero de telefono es obligatorio"
+        }
+
+        if (!isValidPhone(state.phone)) {
+            return "El numero de telefono debe tener 10 dígitos"
+        }
+
+        if (state.selectedGender.isBlank()) {
+            return "Selecciona tu genero"
+        }
+
+        return null // Formulario válido
     }
 
     /**
@@ -99,10 +146,10 @@ class CompleteProfileViewModel(
                     fullName = state.fullName,
                     birthDate = state.birthDate.trim(),
                     city = state.city.trim(),
-                    gender = "", // Opcional, se puede completar después
+                    gender = state.selectedGender,
                     role = state.selectedRole,
-                    phone = state.phone.takeIf { it.isNotBlank() },
-                    profileCompleted = true, // ✅ Marcar como completado
+                    phone = state.phone,
+                    profileCompleted = true, // Marcar como completado
                     createdAt = Timestamp.now(), // Firestore lo mantiene
                     updatedAt = Timestamp.now()
                 )
@@ -130,5 +177,25 @@ class CompleteProfileViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Valida formato básico de fecha: dd/mm/aaaa o dd-mm-aaaa
+     */
+    private fun isValidDateFormat(date: String): Boolean {
+        // Acepta dd/mm/aaaa o dd-mm-aaaa
+        val dateRegex = Regex("^\\d{1,2}[/-]\\d{1,2}[/-]\\d{4}$")
+        return dateRegex.matches(date.trim())
+    }
+
+    /**
+     * Verifica que un número de teléfono tenga 10 dígitos.
+     * @param phone Número de teléfono a verificar.
+     * @return true si el número tiene 10 dígitos, false en caso contrario.
+     */
+    private fun isValidPhone(phone: String): Boolean {
+        // Acepta números con 10 dígitos
+        val phoneRegex = Regex("^\\d{10}$")
+        return phoneRegex.matches(phone.trim())
     }
 }
