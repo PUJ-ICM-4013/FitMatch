@@ -1,17 +1,22 @@
 package com.example.fitmatch.data.auth
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.example.fitmatch.model.user.User
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class FirebaseAuthRepository(
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) : AuthRepository {
 
     override suspend fun signIn(email: String, password: String): FirebaseUser? =
@@ -64,6 +69,29 @@ class FirebaseAuthRepository(
         val current = auth.currentUser ?: throw Exception("No authenticated user when linking credential")
         current.linkWithCredential(pending).await()
         return auth.currentUser
+    }
+
+    override suspend fun createUserProfile(user: User): Result<Unit> = try {
+        firestore.collection("users")
+            .document(user.id)
+            .set(user)
+            .await()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override suspend fun getUserProfile(userId: String): Result<User?> = try {
+        val snapshot = firestore.collection("users")
+            .document(userId)
+            .get()
+            .await()
+
+        val user = snapshot.toObject(User::class.java)
+        Result.success(user)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
     override fun signOut() { auth.signOut() }

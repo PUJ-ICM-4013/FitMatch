@@ -1,5 +1,6 @@
 package com.example.fitmatch.data.auth
 
+import com.example.fitmatch.model.user.User
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.AuthCredential
 
@@ -18,6 +19,10 @@ interface AuthRepository {
     // Linkear la credencial pendiente (por ejemplo, credential de Google/Facebook)
     // con una cuenta que se autentica con email+password.
     suspend fun linkPendingCredentialWithEmail(email: String, password: String, pending: AuthCredential): FirebaseUser?
+
+    suspend fun createUserProfile(user: User): Result<Unit>
+
+    suspend fun getUserProfile(userId: String): Result<User?>
 
     fun signOut()
     fun currentUser(): FirebaseUser?

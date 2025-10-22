@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -78,7 +79,7 @@ dependencies {
 
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://goo.gl/Ce5L94
-    implementation("com.facebook.android:facebook-android-sdk")
+    implementation("com.facebook.android:facebook-android-sdk:latest.release")
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
@@ -87,6 +88,10 @@ dependencies {
     implementation("androidx.credentials:credentials")
     implementation("androidx.credentials:credentials-play-services-auth")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.firebase:firebase-firestore")
+    
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // build.gradle (Module: app)
 
