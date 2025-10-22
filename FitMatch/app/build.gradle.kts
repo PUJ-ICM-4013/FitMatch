@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -64,7 +65,11 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.activity.compose.v181)
     implementation("androidx.compose.material:material-icons-extended")
-
+    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")                     
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
     // build.gradle (Module: app)
 
 
