@@ -10,7 +10,9 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,6 +36,7 @@ import com.example.fitmatch.presentation.ui.screens.cliente.FavoritesScreen
 import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.PreferencesFlowScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.ProfileScreen
+import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.ClienteDashboardViewModel
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatListScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.DeliveryPickupScreen
@@ -305,14 +308,20 @@ fun MainNavigation() {
             }
 
             composable(AppScreens.Search.route) {
+                var isTemperatureFilterEnabled by remember { mutableStateOf(false) }
+
                 SearchScreen(
                     onBackClick = { navController.popBackStack() },
                     onSearchClick = {
-                        // Navega a donde prefieras tras buscar:
                         navController.navigate(AppScreens.ProductDetail.route)
+                    },
+                    isTemperatureFilterEnabled = isTemperatureFilterEnabled,
+                    onToggleTemperatureFilter = { enabled ->
+                        isTemperatureFilterEnabled = enabled
                     }
                 )
             }
+
 
             composable(AppScreens.ProductDetail.route) {
                 ProductDetailScreen(
