@@ -71,7 +71,8 @@ class CompleteProfileViewModel(
         _uiState.update {
             it.copy(
                 selectedGender = gender,
-                isGenderDropdownExpanded = false
+                isGenderDropdownExpanded = false,
+                errorMessage = null
             )
         }
         validateForm()
@@ -88,41 +89,28 @@ class CompleteProfileViewModel(
         validateForm()
     }
 
-    private fun validateForm(): String?{
+    private fun validateForm() {
         val state = _uiState.value
-        // Fecha de nacimiento vacía
-        if (state.birthDate.isBlank()) {
-            return "La fecha de nacimiento es obligatoria"
+
+        // Validar cada campo y obtener el mensaje de error (si hay)
+        val errorMessage = when {
+            state.birthDate.isBlank() -> "La fecha de nacimiento es obligatoria"
+            !isValidDateFormat(state.birthDate) -> "Formato de fecha inválido. Usa: dd/mm/aaaa"
+            state.city.isBlank() -> "La ciudad es obligatoria"
+            state.phone.isBlank() -> "El número de teléfono es obligatorio"
+            !isValidPhone(state.phone) -> "El número de teléfono debe tener 10 dígitos"
+            state.selectedGender.isBlank() -> "Selecciona tu género"
+            state.selectedRole.isBlank() -> "Selecciona cómo quieres usar la app"
+            else -> null // Formulario válido
         }
 
-        // Validar formato de fecha (básico)
-        if (!isValidDateFormat(state.birthDate)) {
-            return "Formato de fecha inválido. Usa: dd/mm/aaaa"
+        // Actualizar el estado con el resultado de la validación
+        _uiState.update {
+            it.copy(
+                isFormValid = errorMessage == null,
+                errorMessage = errorMessage
+            )
         }
-
-        // Rol no seleccionado
-        if (state.selectedRole.isBlank()) {
-            return "Selecciona cómo quieres usar la app"
-        }
-
-        // Ciudad vacía
-        if (state.city.isBlank()) {
-            return "La ciudad es obligatoria"
-        }
-
-        if (state.phone.isBlank()) {
-            return "El numero de telefono es obligatorio"
-        }
-
-        if (!isValidPhone(state.phone)) {
-            return "El numero de telefono debe tener 10 dígitos"
-        }
-
-        if (state.selectedGender.isBlank()) {
-            return "Selecciona tu genero"
-        }
-
-        return null // Formulario válido
     }
 
     /**
@@ -149,8 +137,8 @@ class CompleteProfileViewModel(
                     gender = state.selectedGender,
                     role = state.selectedRole,
                     phone = state.phone,
-                    profileCompleted = true, // Marcar como completado
-                    createdAt = Timestamp.now(), // Firestore lo mantiene
+                    profileCompleted = true,
+                    createdAt = Timestamp.now(),
                     updatedAt = Timestamp.now()
                 )
 
@@ -183,18 +171,14 @@ class CompleteProfileViewModel(
      * Valida formato básico de fecha: dd/mm/aaaa o dd-mm-aaaa
      */
     private fun isValidDateFormat(date: String): Boolean {
-        // Acepta dd/mm/aaaa o dd-mm-aaaa
         val dateRegex = Regex("^\\d{1,2}[/-]\\d{1,2}[/-]\\d{4}$")
         return dateRegex.matches(date.trim())
     }
 
     /**
      * Verifica que un número de teléfono tenga 10 dígitos.
-     * @param phone Número de teléfono a verificar.
-     * @return true si el número tiene 10 dígitos, false en caso contrario.
      */
     private fun isValidPhone(phone: String): Boolean {
-        // Acepta números con 10 dígitos
         val phoneRegex = Regex("^\\d{10}$")
         return phoneRegex.matches(phone.trim())
     }
