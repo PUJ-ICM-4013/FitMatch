@@ -2,152 +2,113 @@ package com.example.fitmatch.presentation.ui.screens.cliente.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitmatch.presentation.ui.screens.cliente.state.PaymentMethod
-import com.example.fitmatch.presentation.ui.screens.cliente.state.ProfileUiState
-import com.example.fitmatch.presentation.ui.screens.cliente.state.ShippingAddress
+import com.example.fitmatch.data.auth.AuthRepository
+import com.example.fitmatch.data.auth.FirebaseAuthRepository
+import com.example.fitmatch.model.user.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
-class ProfileViewModel : ViewModel() {
+data class ProfileUiState(
+    val user: User? = null,
+    val isLoading: Boolean = false,
+    val isLoggedOut: Boolean = false,
+    val errorMessage: String? = null
+)
 
-    // Estados
+class ProfileViewModel(
+    private val authRepository: AuthRepository = FirebaseAuthRepository()
+) : ViewModel() {
+
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    init {
-        loadProfileData()
-    }
-    //acciones
-
-    // Manejar selección/deselección de tallas
-    fun onToggleSize(size: String) {
-        _uiState.update { currentState ->
-            val updatedSizes = if (currentState.preferredSizes.contains(size)) {
-                currentState.preferredSizes - size
-            } else {
-                currentState.preferredSizes + size
-            }
-            currentState.copy(preferredSizes = updatedSizes)
-        }
-    }
-
-    // Quitar método de pago
-    fun onRemovePaymentMethod(methodId: String) {
+    /**
+     * Carga el perfil del usuario actual desde Firebase
+     */
+    fun loadUserProfile() {
         viewModelScope.launch {
-            // TODO: Llamar al repositorio para eliminar
-            _uiState.update { currentState ->
-                currentState.copy(
-                    paymentMethods = currentState.paymentMethods.filter { it.id != methodId }
-                )
-            }
-        }
-    }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-    // Añadir método de pago
-    fun onAddPaymentMethod() {
-        // TODO: Navegar a pantalla de agregar tarjeta
-        // Por ahora solo mock
-        viewModelScope.launch {
-            val newMethod = PaymentMethod(
-                id = System.currentTimeMillis().toString(),
-                lastFourDigits = "9999"
-            )
+            try {
+                val currentUser = authRepository.currentUser()
 
-            _uiState.update { currentState ->
-                currentState.copy(
-                    paymentMethods = currentState.paymentMethods + newMethod
-                )
-            }
-        }
-    }
-
-    // Guardar cambios del perfil
-    fun onSaveChanges() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isSavingChanges = true, errorMessage = null) }
-
-            // TODO: Llamar al repositorio para actualizar perfil
-            delay(1000)
-
-            _uiState.update {
-                it.copy(
-                    isSavingChanges = false,
-                    successMessage = "Cambios guardados correctamente"
-                )
-            }
-
-            // Limpiar mensaje de éxito después de 2 segundos
-            delay(2000)
-            _uiState.update { it.copy(successMessage = null) }
-        }
-    }
-
-    // Cerrar sesión
-    fun onLogout(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoggingOut = true) }
-
-            // TODO: Llamar al repositorio para cerrar sesión
-            delay(800)
-
-            _uiState.update { it.copy(isLoggingOut = false) }
-            onSuccess()
-        }
-    }
-
-    // Eliminar cuenta
-    fun onDeleteAccount(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            // TODO: Mostrar diálogo de confirmación
-            // TODO: Llamar al repositorio para eliminar cuenta
-            delay(1000)
-            onSuccess()
-        }
-    }
-
-    // Cambiar idioma
-    fun onChangeLanguage(language: String) {
-        _uiState.update { it.copy(selectedLanguage = language) }
-        // TODO: Aplicar cambio de idioma globalmente
-    }
-
-    // Limpiar mensajes de error y éxito
-    fun onDismissMessage() {
-        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
-    }
-
-    // Cargar datos del perfil (mock desde el repositorio)
-    private fun loadProfileData() {
-        viewModelScope.launch {
-            // TODO: Llamada real al repositorio
-            delay(300)
-
-            _uiState.update {
-                it.copy(
-                    paymentMethods = listOf(
-                        PaymentMethod("1", "1234"),
-                        PaymentMethod("2", "5678")
-                    ),
-                    shippingAddresses = listOf(
-                        ShippingAddress(
-                            "1",
-                            "DIRECCIÓN PRINCIPAL",
-                            "Calle 45 #23-67, Laureles",
-                            isPrimary = true
-                        ),
-                        ShippingAddress(
-                            "2",
-                            "DIRECCIÓN SECUNDARIA",
-                            "Carrera 80 #34-12, Belén"
+                if (currentUser == null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "No hay usuario autenticado"
                         )
-                    ),
-                    preferredSizes = setOf("S", "M", "L")
-                )
+                    }
+                    return@launch
+                }
+
+                // Obtener el perfil del usuario desde Firestore
+                val result = authRepository.getUserProfile(currentUser.uid)
+
+                result.onSuccess { user ->
+                    _uiState.update {
+                        it.copy(
+                            user = user,
+                            isLoading = false,
+                            errorMessage = null
+                        )
+                    }
+                }.onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al cargar perfil: ${e.message}"
+                        )
+                    }
+                }
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error inesperado: ${e.message}"
+                    )
+                }
             }
         }
+    }
+
+    /**
+     * Cierra la sesión del usuario
+     */
+    fun logout() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            try {
+                authRepository.signOut()
+
+                _uiState.update {
+                    it.copy(
+                        user = null,
+                        isLoading = false,
+                        isLoggedOut = true,
+                        errorMessage = null
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error al cerrar sesión: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Limpia el mensaje de error
+     */
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 }
