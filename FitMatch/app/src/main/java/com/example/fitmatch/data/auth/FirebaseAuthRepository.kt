@@ -1,7 +1,5 @@
 package com.example.fitmatch.data.auth
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.fitmatch.model.user.User
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
@@ -62,11 +60,14 @@ class FirebaseAuthRepository(
         return result.signInMethods ?: emptyList()
     }
 
-    override suspend fun linkPendingCredentialWithEmail(email: String, password: String, pending: AuthCredential): FirebaseUser? {
-        // 1) Sign in with email+password to get an authenticated user
+    override suspend fun linkPendingCredentialWithEmail(
+        email: String,
+        password: String,
+        pending: AuthCredential
+    ): FirebaseUser? {
         auth.signInWithEmailAndPassword(email, password).await()
-        // 2) Link the pending credential with the signed-in user
-        val current = auth.currentUser ?: throw Exception("No authenticated user when linking credential")
+        val current = auth.currentUser
+            ?: throw Exception("No authenticated user when linking credential")
         current.linkWithCredential(pending).await()
         return auth.currentUser
     }
@@ -81,7 +82,6 @@ class FirebaseAuthRepository(
         Result.failure(e)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getUserProfile(userId: String): Result<User?> = try {
         val snapshot = firestore.collection("users")
             .document(userId)
@@ -94,7 +94,9 @@ class FirebaseAuthRepository(
         Result.failure(e)
     }
 
-    override fun signOut() { auth.signOut() }
+    override fun signOut() {
+        auth.signOut()
+    }
 
     override fun currentUser(): FirebaseUser? = auth.currentUser
 }
