@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.fitmatch.presentation.ui.components.BottomNavItem
 import com.example.fitmatch.presentation.ui.components.BottomNavigationBar
+import com.example.fitmatch.presentation.ui.screens.auth.ui.CompleteProfileScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.LoginScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.RegisterScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.WelcomeScreen
@@ -138,7 +139,7 @@ fun MainNavigation() {
                 WelcomeScreen(
                     onCreateAccount = { navController.navigate(AppScreens.Register.route) },
                     onContinueWithGoogle = { navController.navigate(AppScreens.Login.route) },
-                    onContinueWithApple = { navController.navigate(AppScreens.Login.route) }
+                    onContinueWithFacebook = { navController.navigate(AppScreens.Login.route) }
                 )
             }
 
@@ -334,6 +335,21 @@ fun MainNavigation() {
                     onBackClick = { navController.popBackStack() },
                     onFollowClick = {},
                     onProductClick = {}
+                )
+            }
+
+            //Completar el perfil despues de continuar con Google o Facebook
+            composable("completeProfile/{userId}") { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                CompleteProfileScreen(
+                    userId = userId,
+                    onBackClick = { navController.popBackStack() },
+                    onContinue = {
+                        // TODO: Navegar a Preferences o Home según el rol
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                        }
+                    }
                 )
             }
         }

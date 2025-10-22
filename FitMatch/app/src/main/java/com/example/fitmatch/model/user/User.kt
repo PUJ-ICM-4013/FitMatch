@@ -10,8 +10,8 @@ data class User(
     val city: String,
     val gender: String,
     val role: String, // "Cliente" | "Vendedor"
-    val avatarEmoji: String,
     val phone: String?,
     val createdAt: Timestamp,
-    val updatedAt: Timestamp
+    val updatedAt: Timestamp,
+    val profileCompleted: Boolean
 )

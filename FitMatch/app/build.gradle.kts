@@ -56,10 +56,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.runtime.saveable)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
-    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,15 +79,18 @@ dependencies {
 
     // Add the dependency for the Firebase Authentication library
     // When using the BoM, you don't specify versions in Firebase library dependencies
-
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.credentials:credentials")
     implementation("androidx.credentials:credentials-play-services-auth")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.firebase:firebase-firestore")
+
+    implementation("androidx.credentials:credentials")
+    implementation("androidx.credentials:credentials-play-services-auth")
+    implementation("com.google.android.libraries.identity.googleid:googleid")
     
     // Google Sign-In
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.android.gms:play-services-auth")
 
     // build.gradle (Module: app)
 

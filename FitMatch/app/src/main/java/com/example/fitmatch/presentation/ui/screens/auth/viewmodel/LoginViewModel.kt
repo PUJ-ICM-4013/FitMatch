@@ -29,7 +29,7 @@ class LoginViewModel : ViewModel() {
     fun onEmailOrPhoneChanged(value: String) {
         _uiState.update { currentState ->
             currentState.copy(
-                emailOrPhone = value,
+                email = value,
                 errorMessage = null, // Limpiar error al escribir
                 isLoginEnabled = LoginUiState.isValidForm(value, currentState.password)
             )
@@ -43,7 +43,7 @@ class LoginViewModel : ViewModel() {
             currentState.copy(
                 password = value,
                 errorMessage = null,
-                isLoginEnabled = LoginUiState.isValidForm(currentState.emailOrPhone, value)
+                isLoginEnabled = LoginUiState.isValidForm(currentState.email, value)
             )
         }
     }
@@ -70,7 +70,7 @@ class LoginViewModel : ViewModel() {
             // Simulación de validación
             val currentState = _uiState.value
             val isValidCredentials = simulateLogin(
-                currentState.emailOrPhone,
+                currentState.email,
                 currentState.password
             )
 
