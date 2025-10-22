@@ -12,7 +12,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
-
+import org.osmdroid.util.GeoPoint
+import com.example.fitmatch.presentation.utils.RouteSimulator
+import kotlinx.coroutines.Job
 
 class DeliveryPickupViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -23,26 +25,25 @@ class DeliveryPickupViewModel(
 
     private val _events = Channel<DeliveryEvent>()
     val events = _events.receiveAsFlow()
+    private var simulationJob: Job? = null
+    private var currentRoutePoints: List<GeoPoint> = emptyList()
 
     init {
-        // Obtener orderId de los argumentos de navegación
         val orderId = savedStateHandle.get<String>("orderId") ?: "MIX-24816"
         loadOrderDetails(orderId)
         startRealtimeTracking()
     }
 
-
-    //marcar el "paso actual" completado
     fun onMarkStepComplete() {
         viewModelScope.launch {
             val currentStep = _uiState.value.currentStep ?: return@launch
 
             _uiState.update { it.copy(isMarkingComplete = true, errorMessage = null) }
-
-            // TODO: Llamar al repositorio para actualizar estado
             delay(1000)
 
-            // Actualizar paso a completado
+            // Detener simulación actual
+            simulationJob?.cancel()
+
             _uiState.update { currentState ->
                 val updatedSteps = currentState.tripSteps.mapIndexed { index, step ->
                     if (index == currentState.currentStepIndex) {
@@ -53,7 +54,6 @@ class DeliveryPickupViewModel(
                 val nextStepIndex = currentState.currentStepIndex + 1
                 val hasNextStep = nextStepIndex < currentState.tripSteps.size
 
-                // Activar siguiente paso si existe
                 val finalSteps = if (hasNextStep) {
                     updatedSteps.mapIndexed { index, step ->
                         if (index == nextStepIndex) step.copy(isActive = true)
@@ -72,32 +72,32 @@ class DeliveryPickupViewModel(
                 )
             }
 
-            // Enviar evento si completó todo
+            // Emitir evento para mover el marcador
+            _events.send(DeliveryEvent.StepCompleted(_uiState.value.currentStepIndex))
+
             if (_uiState.value.currentStepIndex >= _uiState.value.tripSteps.size) {
                 _events.send(DeliveryEvent.OrderCompleted)
+            } else {
+                // Iniciar nueva simulación hacia el siguiente destino
+                startMovementSimulation()
             }
 
-            // Limpiar mensaje después de 2 segundos
             delay(2000)
             _uiState.update { it.copy(successMessage = null) }
         }
     }
 
-    //llamar a la tienda o al cliente
     fun onCall() {
         viewModelScope.launch {
             val phoneNumber = if (_uiState.value.isPickupStep) {
-                // Número de la tienda
-                "+57 300 111 2222"
+                "+57 300 111 2222" // Tienda
             } else {
-                // Número del cliente
-                "+57 300 123 4567"
+                "+57 300 123 4567" // Cliente
             }
             _events.send(DeliveryEvent.MakeCall(phoneNumber))
         }
     }
 
-    //abrir chat
     fun onChat() {
         viewModelScope.launch {
             val chatId = _uiState.value.order?.orderId ?: return@launch
@@ -105,7 +105,6 @@ class DeliveryPickupViewModel(
         }
     }
 
-    // navegación a la ubicación que ponga en el mapa
     fun onNavigate() {
         viewModelScope.launch {
             val step = _uiState.value.currentStep ?: return@launch
@@ -126,10 +125,12 @@ class DeliveryPickupViewModel(
         }
     }
 
-    //actualización ubicación a tiempo real
     fun onLocationUpdate(lat: Double, lng: Double) {
-        // TODO: Enviar ubicación al backend para tracking
         calculateETA(lat, lng)
+    }
+
+    fun onDismissMessage() {
+        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
     }
 
     // ========== LÓGICA PRIVADA ==========
@@ -137,8 +138,6 @@ class DeliveryPickupViewModel(
     private fun loadOrderDetails(orderId: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-
-            // TODO: Llamar al repositorio
             delay(500)
 
             val mockOrder = OrderDeliveryInfo(
@@ -150,6 +149,7 @@ class DeliveryPickupViewModel(
                 createdDaysAgo = 1
             )
 
+            // COORDENADAS REALES EN BOGOTÁ
             val mockSteps = listOf(
                 TripStep(
                     stepNumber = 1,
@@ -157,7 +157,7 @@ class DeliveryPickupViewModel(
                     address = "CC Centro Mayor, local 201",
                     timeWindow = "2:00 – 3:00 p. m.",
                     isActive = true,
-                    latitude = 4.6097,
+                    latitude = 4.6097,  // Centro Mayor, Bogotá
                     longitude = -74.0817
                 ),
                 TripStep(
@@ -166,7 +166,7 @@ class DeliveryPickupViewModel(
                     address = "Cra 15 #93-47, Apto 302, Chapinero",
                     timeWindow = "3:30 – 4:00 p. m.",
                     isActive = false,
-                    latitude = 4.6751,
+                    latitude = 4.6751,  // Chapinero, Bogotá
                     longitude = -74.0570
                 )
             )
@@ -184,8 +184,6 @@ class DeliveryPickupViewModel(
 
     private fun startRealtimeTracking() {
         viewModelScope.launch {
-            // TODO: Conectar a Firebase para tracking en tiempo real
-            // Por ahora simulamos actualizaciones cada 30 segundos
             while (true) {
                 delay(30_000)
                 updateEstimatedTime()
@@ -194,7 +192,6 @@ class DeliveryPickupViewModel(
     }
 
     private fun updateEstimatedTime() {
-        // Simulación de actualización de ETA
         val currentEta = _uiState.value.estimatedTime.split(" ")[0].toIntOrNull() ?: 0
         if (currentEta > 0) {
             _uiState.update {
@@ -205,35 +202,68 @@ class DeliveryPickupViewModel(
 
     private fun calculateETA(currentLat: Double, currentLng: Double) {
         val destination = _uiState.value.currentStep ?: return
-
-        // TODO: Usar API de Mapa para hacer el calculo y si no tiene para hacerlo, usen esta, pero no dará la distancia real
-        // Por ahora calculamos distancia euclidiana simple
         val destLat = destination.latitude ?: return
         val destLng = destination.longitude ?: return
-        //no sé hacer elevados a y no encontré la libreria JAJAJAJ
-        //TODO: Busquenla ustedes jajaj
-        val distance = 30//kotlin.math.sqrt(
-//            kotlin.math.pow(destLat - currentLat, 2.0) +
-//                    kotlin.math.pow(destLng - currentLng, 2.0)
-//        )
 
-        // Estimar tiempo (muy aproximado: grado= 111km, velocidad promedio 30km/h)
-        //val estimatedMinutes = (distance * 111 * 60 / 30).toInt()
+        // Cálculo simple de distancia (en producción usar API de rutas)
+        val R = 6371.0 // Radio de la Tierra en km
+        val dLat = Math.toRadians(destLat - currentLat)
+        val dLon = Math.toRadians(destLng - currentLng)
+
+        val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(currentLat)) * Math.cos(Math.toRadians(destLat)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2)
+
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        val distance = R * c // distancia en km
+
+        // Estimar tiempo (velocidad promedio 30 km/h en ciudad)
+        val estimatedMinutes = ((distance / 30.0) * 60).toInt().coerceAtLeast(1)
 
         _uiState.update {
-            it.copy(estimatedTime = "tiempo estimado...") //"$estimatedMinutes min")
+            it.copy(estimatedTime = "$estimatedMinutes min")
+        }
+    }
+    fun startMovementSimulation() {
+        if (currentRoutePoints.isEmpty()) return
+
+        simulationJob?.cancel()
+        simulationJob = viewModelScope.launch {
+            try {
+                RouteSimulator.simulateMovement(
+                    route = currentRoutePoints,
+                    speedKmh = 30.0, // 30 km/h velocidad urbana
+                    updateIntervalMs = 2000L // Actualizar cada 2 segundos
+                ) { currentPosition, remainingKm ->
+                    // Actualizar posición del repartidor
+                    _events.trySend(DeliveryEvent.UpdateDriverPosition(currentPosition))
+
+                    // Actualizar ETA basado en distancia restante
+                    val etaMinutes = ((remainingKm / 30.0) * 60).toInt().coerceAtLeast(1)
+                    _uiState.update { it.copy(estimatedTime = "$etaMinutes min") }
+                }
+            } catch (e: Exception) {
+                // Simulación cancelada o error
+            }
         }
     }
 
-    fun onDismissMessage() {
-        _uiState.update { it.copy(errorMessage = null, successMessage = null) }
+    /**
+     * Guarda la ruta y inicia la simulación cuando se recibe
+     */
+    fun onRouteReceived(route: List<GeoPoint>) {
+        currentRoutePoints = route
+        startMovementSimulation()
     }
 }
 
-//el contacto con el de la entrega y sobre la entrega
 sealed class DeliveryEvent {
     data class MakeCall(val phoneNumber: String) : DeliveryEvent()
     data class OpenChat(val chatId: String) : DeliveryEvent()
+
+    data class UpdateRoute(val from: GeoPoint, val to: GeoPoint) : DeliveryEvent()
+    data class UpdateDriverPosition(val position: GeoPoint) : DeliveryEvent()
+    data class StepCompleted(val stepIndex: Int) : DeliveryEvent()
     data class NavigateToLocation(
         val lat: Double,
         val lng: Double,
