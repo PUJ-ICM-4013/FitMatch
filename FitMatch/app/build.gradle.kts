@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.runtime.saveable)
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -69,6 +70,10 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.activity.compose.v181)
     implementation("androidx.compose.material:material-icons-extended")
+    //dependencias para mapa y localizacion
+    implementation("org.osmdroid:osmdroid-android:6.1.17")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     // Import the Firebase BoM
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
