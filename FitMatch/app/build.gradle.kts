@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("kotlin-parcelize")
 
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
@@ -93,10 +94,15 @@ dependencies {
     implementation("androidx.credentials:credentials")
     implementation("androidx.credentials:credentials-play-services-auth")
     implementation("com.google.android.libraries.identity.googleid:googleid")
-    
+
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth")
 
+    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-ui:1.4.1")
     // build.gradle (Module: app)
 
 
