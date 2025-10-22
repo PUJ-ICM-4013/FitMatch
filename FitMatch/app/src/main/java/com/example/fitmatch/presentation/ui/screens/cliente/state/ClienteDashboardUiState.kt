@@ -9,7 +9,8 @@ data class ClienteDashboardUiState(
     val tiltSensitivity: Float = 3.0f, // Umbral de inclinación (m/s²)
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val showTiltInstructions: Boolean = false
+    val showTiltInstructions: Boolean = false,
+    val isTemperatureFilterEnabled: Boolean = false
 ) {
     val hasProducts: Boolean
         get() = productDeck.isNotEmpty()

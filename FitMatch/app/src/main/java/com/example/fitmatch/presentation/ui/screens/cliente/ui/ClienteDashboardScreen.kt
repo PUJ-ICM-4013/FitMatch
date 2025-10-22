@@ -1,5 +1,6 @@
 package com.example.fitmatch.presentation.ui.screens.cliente
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -34,11 +35,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitmatch.presentation.ui.screens.cliente.state.ProductCardState
 import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.ClienteDashboardViewModel
 import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.DashboardEvent
+import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.TemperatureViewModel
 import kotlinx.coroutines.launch
 
 /**
@@ -102,9 +107,29 @@ fun ClienteDashboardScreen(
         }
     }
 
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        lifecycleOwner.lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_RESUME -> {
+                        viewModel.startTemperatureSensor()
+                    }
+                    Lifecycle.Event.ON_PAUSE -> {
+                        viewModel.stopTemperatureSensor()
+                    }
+                    else -> {}
+                }
+            }
+        )
+    }
+
+
     // Bottom Sheet para detalles del producto
     var selectedProduct by remember { mutableStateOf<ProductCardState?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val temperature by viewModel.temperature.collectAsState(initial = 15f)
 
     Scaffold(
         containerColor = colors.background,
@@ -121,17 +146,48 @@ fun ClienteDashboardScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.align(Alignment.CenterStart)
+                    // 🔹 Izquierda: Botón de volver + temperatura
+                    Row(
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = colors.onSurface
-                        )
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver",
+                                tint = colors.onSurface
+                            )
+                        }
+
+                        // Círculo de temperatura
+                        if (temperature != null) {
+                            val tempColor = when {
+                                temperature!! < 15 -> Color(0xFF2196F3) // Azul - frío
+                                temperature!! < 25 -> Color(0xFF4CAF50) // Verde - templado
+                                else -> Color(0xFFFF7043) // Naranja/rojo - calor
+                            }
+
+                            Surface(
+                                modifier = Modifier.size(36.dp),
+                                shape = CircleShape,
+                                color = tempColor.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, tempColor)
+                            ) {
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                    Text(
+                                        text = "${temperature?.toInt()}°",
+                                        color = tempColor,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
 
+                    // 🔹 Título centrado
                     Text(
                         text = "Descubrir",
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -142,12 +198,12 @@ fun ClienteDashboardScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
 
+                    // 🔹 Derecha: sensores y filtro
                     Row(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        // Toggle Tilt Sensor
                         IconButton(
                             onClick = {
                                 viewModel.onToggleTiltSensor(!uiState.isTiltEnabled)
@@ -159,7 +215,10 @@ fun ClienteDashboardScreen(
                                 else
                                     Icons.Filled.PhoneIphone,
                                 contentDescription = "Sensor de inclinación",
-                                tint = if (uiState.isTiltEnabled) colors.primary else colors.onSurface
+                                tint = if (uiState.isTiltEnabled)
+                                    colors.primary
+                                else
+                                    colors.onSurface
                             )
                         }
 
@@ -174,7 +233,8 @@ fun ClienteDashboardScreen(
                 }
             }
         }
-    ) { innerPadding ->
+    )
+    { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -1024,17 +1084,31 @@ private suspend fun animateCardExit(
     offset: Animatable<Offset, *>,
     onSwiped: (isLike: Boolean) -> Unit
 ) {
-    val targetX = if (toRight) size.width * 1.5f else -size.width * 1.5f
-    val targetY = if (toRight) -size.height * 0.2f else -size.height * 0.2f
+    // Evita animar si el tamaño no está definido todavía
+    if (size.width == 0 || size.height == 0) return
 
-    offset.updateBounds(Offset.Unspecified, Offset.Unspecified)
-    offset.animateTo(
-        Offset(targetX, targetY),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
+    val targetX = if (toRight) size.width * 1.5f else -size.width * 1.5f
+    val targetY = -size.height * 0.2f
+
+    try {
+        // Usa límites válidos
+        offset.updateBounds(
+            lowerBound = Offset(-size.width.toFloat() * 2, -size.height.toFloat() * 2),
+            upperBound = Offset(size.width.toFloat() * 2, size.height.toFloat() * 2)
         )
-    )
-    onSwiped(toRight)
-    offset.snapTo(Offset.Zero)
+
+        // Ejecuta la animación
+        offset.animateTo(
+            Offset(targetX, targetY),
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMedium
+            )
+        )
+
+        onSwiped(toRight)
+        offset.snapTo(Offset.Zero)
+    } catch (e: Exception) {
+        Log.e("ClienteDashboard", "Error en animación: ${e.message}")
+    }
 }
