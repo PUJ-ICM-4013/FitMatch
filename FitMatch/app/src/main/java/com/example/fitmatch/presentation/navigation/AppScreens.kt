@@ -5,6 +5,9 @@ sealed class AppScreens (val route: String) {
     object Register : AppScreens("register")
     object Login : AppScreens ("login")
     object Preferences : AppScreens("preferences")
+    object CompleteProfile : AppScreens("complete_profile/{userId}") {
+        fun withUserId(userId: String) = "complete_profile/$userId"
+    }
     object Home : AppScreens("home/{role}") {
         fun withRole(role: String) = "home/$role" // role: "Cliente" | "Vendedor"
     }

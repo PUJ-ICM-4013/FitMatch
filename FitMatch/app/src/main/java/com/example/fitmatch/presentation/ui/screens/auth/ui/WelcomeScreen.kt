@@ -73,7 +73,7 @@ fun WelcomeScreen(
                     // Lambda con LoginResult
                     viewModel.onGoogleSignIn(it) { result ->
                         if (result.isNewUser) {
-                            onContinueWithGoogle()
+                            onNavigateToCompleteProfile(result.userId)
                         } else {
                             onNavigateToHome(result.userId)
                         }

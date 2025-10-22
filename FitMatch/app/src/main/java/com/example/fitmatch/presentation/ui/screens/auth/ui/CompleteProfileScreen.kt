@@ -10,24 +10,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
+import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.CompleteProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompleteProfileScreen(
     userId: String,
     onBackClick: () -> Unit = {},
-    onContinue: () -> Unit = {}
+    onContinue: (role: String) -> Unit = {},
+    viewModel: CompleteProfileViewModel = viewModel()
 ) {
     val colors = MaterialTheme.colorScheme
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var birthDate by remember { mutableStateOf("") }
-    var city by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf("Cliente") }
+    // Inicializar con el userId cuando se monta el composable
+    LaunchedEffect(userId) {
+        viewModel.initializeWithUserId(userId)
+    }
 
     Scaffold(
         containerColor = colors.background,
@@ -74,50 +80,138 @@ fun CompleteProfileScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Solo faltan algunos datos...",
-                style = MaterialTheme.typography.bodyLarge
+                "Hola ${uiState.fullName.split(" ").firstOrNull() ?: ""}! 👋",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = colors.primary
+            )
+
+            Text(
+                "Solo faltan algunos datos para empezar...",
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // Email (readonly)
+            OutlinedTextField(
+                value = uiState.email,
+                onValueChange = {},
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = colors.outline,
+                    disabledTextColor = colors.onSurface,
+                    disabledLabelColor = colors.onSurfaceVariant
+                )
+            )
+
+            // Nombre completo (readonly)
+            OutlinedTextField(
+                value = uiState.fullName,
+                onValueChange = {},
+                label = { Text("Nombre Completo") },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledBorderColor = colors.outline,
+                    disabledTextColor = colors.onSurface,
+                    disabledLabelColor = colors.onSurfaceVariant
+                )
             )
 
             // Fecha de nacimiento
             OutlinedTextField(
-                value = birthDate,
-                onValueChange = { birthDate = it },
-                label = { Text("Fecha de Nacimiento") },
+                value = uiState.birthDate,
+                onValueChange = { viewModel.onBirthDateChanged(it) },
+                label = { Text("Fecha de Nacimiento *") },
                 placeholder = { Text("dd/mm/aaaa") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline
+                )
             )
 
             // Ciudad
             OutlinedTextField(
-                value = city,
-                onValueChange = { city = it },
-                label = { Text("Ciudad") },
+                value = uiState.city,
+                onValueChange = { viewModel.onCityChanged(it) },
+                label = { Text("Ciudad *") },
                 placeholder = { Text("Bogotá") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline
+                )
             )
 
             // Teléfono (opcional)
             OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
+                value = uiState.phone,
+                onValueChange = { viewModel.onPhoneChanged(it) },
                 label = { Text("Teléfono (Opcional)") },
                 placeholder = { Text("+57 300 123 4567") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colors.primary,
+                    unfocusedBorderColor = colors.outline
+                )
             )
 
+            Spacer(Modifier.height(8.dp))
+
             // Rol
-            Text("¿Cómo usarás la app?", fontWeight = FontWeight.Medium)
+            Text(
+                "¿Cómo usarás la app? *",
+                fontWeight = FontWeight.Medium,
+                color = colors.primary
+            )
+
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
-                    selected = selectedRole == "Cliente",
-                    onClick = { selectedRole = "Cliente" },
-                    label = { Text("Comprador") }
+                    selected = uiState.selectedRole == "Cliente",
+                    onClick = {
+                        if (!uiState.isLoading) {
+                            viewModel.onRoleSelected("Cliente")
+                        }
+                    },
+                    label = { Text("Comprador") },
+                    enabled = !uiState.isLoading
                 )
                 FilterChip(
-                    selected = selectedRole == "Vendedor",
-                    onClick = { selectedRole = "Vendedor" },
-                    label = { Text("Vendedor") }
+                    selected = uiState.selectedRole == "Vendedor",
+                    onClick = {
+                        if (!uiState.isLoading) {
+                            viewModel.onRoleSelected("Vendedor")
+                        }
+                    },
+                    label = { Text("Vendedor") },
+                    enabled = !uiState.isLoading
                 )
+            }
+
+            // Mensaje de error
+            if (uiState.errorMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colors.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = colors.onErrorContainer,
+                        modifier = Modifier.padding(12.dp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
 
             Spacer(Modifier.weight(1f))
@@ -125,17 +219,41 @@ fun CompleteProfileScreen(
             // Botón continuar
             Button(
                 onClick = {
-                    // TODO: Actualizar perfil en Firestore
-                    // firestore.collection("users").document(userId).update(...)
-                    onContinue()
+                    viewModel.updateProfile { role ->
+                        onContinue(role)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = birthDate.isNotBlank() && city.isNotBlank()
+                enabled = uiState.isFormValid && !uiState.isLoading,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.primary,
+                    disabledContainerColor = colors.surfaceVariant
+                )
             ) {
-                Text("Continuar", fontWeight = FontWeight.Medium)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = colors.onPrimary,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        "Continuar",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp
+                    )
+                }
             }
+
+            Text(
+                "* Campos obligatorios",
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

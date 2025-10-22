@@ -2,42 +2,46 @@ package com.example.fitmatch.presentation.ui.screens.auth.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fitmatch.data.auth.AuthRepository
+import com.example.fitmatch.data.auth.FirebaseAuthRepository
 import com.example.fitmatch.presentation.ui.screens.auth.state.LoginUiState
+import com.google.firebase.auth.FirebaseAuthException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-//
-//
-//  ViewModel para la pantalla de Login.
-//  Contiene toda la lógica de negocio y el estado de la pantalla.
-//
-class LoginViewModel : ViewModel() {
 
-    // ESTADO
-    // Estado privado y mutable - la única fuente de verdad
+/**
+ * ViewModel para la pantalla de Login.
+ * Maneja la autenticación con Firebase y el estado de la UI.
+ */
+class LoginViewModel(
+    private val authRepository: AuthRepository = FirebaseAuthRepository()
+) : ViewModel() {
+
+    // ========== ESTADO ==========
     private val _uiState = MutableStateFlow(LoginUiState())
-
-    // Estado público e inmutable - la UI lo observa
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     // ========== EVENTOS DESDE LA UI ==========
 
-    //El usuario modifica el cambio de email o telefono
+    /**
+     * El usuario modifica el campo de email o teléfono
+     */
     fun onEmailOrPhoneChanged(value: String) {
         _uiState.update { currentState ->
             currentState.copy(
                 email = value,
-                errorMessage = null, // Limpiar error al escribir
+                errorMessage = null,
                 isLoginEnabled = LoginUiState.isValidForm(value, currentState.password)
             )
         }
     }
 
-    // el usuario cambia el campo de contraseña.
-
+    /**
+     * El usuario modifica el campo de contraseña
+     */
     fun onPasswordChanged(value: String) {
         _uiState.update { currentState ->
             currentState.copy(
@@ -48,56 +52,112 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-
-   // el usuario cambio la visibilidad de la contraseña
+    /**
+     * El usuario cambia la visibilidad de la contraseña
+     */
     fun onTogglePasswordVisibility() {
         _uiState.update { it.copy(showPassword = !it.showPassword) }
     }
 
-     //Evento: el usuario presionó el botón "Continuar" (Login).
-     //Aquí iría la lógica real de autenticación (llamada al repositorio).
-
+    /**
+     * Evento: el usuario presionó el botón "Continuar" (Login).
+     * Realiza la autenticación con Firebase.
+     */
     fun onLoginClick(onSuccess: () -> Unit) {
         viewModelScope.launch {
+            val currentState = _uiState.value
+
+            // Validación básica antes de llamar a Firebase
+            if (currentState.email.isBlank()) {
+                _uiState.update {
+                    it.copy(errorMessage = "Por favor ingresa tu email o teléfono")
+                }
+                return@launch
+            }
+
+            if (currentState.password.length < 8) {
+                _uiState.update {
+                    it.copy(errorMessage = "La contraseña debe tener al menos 8 caracteres")
+                }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            // TODO: Reemplazar con llamada real al repositorio
-            // Ejemplo: val result = authRepository.login(email, password)
+            try {
+                // ========== AUTENTICACIÓN CON FIREBASE ==========
+                val firebaseUser = authRepository.signIn(
+                    email = currentState.email.trim(),
+                    password = currentState.password
+                )
 
-            // Simulación de llamada de red
-            delay(1500)
+                if (firebaseUser != null) {
+                    // ✅ Login exitoso
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess()
+                } else {
+                    // ⚠️ Firebase devolvió null (no debería pasar normalmente)
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Error al iniciar sesión. Intenta nuevamente."
+                        )
+                    }
+                }
 
-            // Simulación de validación
-            val currentState = _uiState.value
-            val isValidCredentials = simulateLogin(
-                currentState.email,
-                currentState.password
-            )
+            } catch (e: FirebaseAuthException) {
+                // ========== MANEJO DE ERRORES DE FIREBASE ==========
+                val errorMessage = when (e.errorCode) {
+                    "ERROR_INVALID_EMAIL" ->
+                        "El formato del email no es válido"
 
-            if (isValidCredentials) {
-                _uiState.update { it.copy(isLoading = false) }
-                onSuccess() // Navegar a la siguiente pantalla
-            } else {
+                    "ERROR_WRONG_PASSWORD" ->
+                        "Contraseña incorrecta. Intenta de nuevo."
+
+                    "ERROR_USER_NOT_FOUND" ->
+                        "No existe una cuenta con este email. ¿Quieres crear una?"
+
+                    "ERROR_USER_DISABLED" ->
+                        "Esta cuenta ha sido deshabilitada. Contacta a soporte."
+
+                    "ERROR_TOO_MANY_REQUESTS" ->
+                        "Demasiados intentos fallidos. Intenta más tarde."
+
+                    "ERROR_NETWORK_REQUEST_FAILED" ->
+                        "Sin conexión a Internet. Verifica tu red."
+
+                    "ERROR_INVALID_CREDENTIAL" ->
+                        "Credenciales inválidas. Verifica tu email y contraseña."
+
+                    else ->
+                        "Error al iniciar sesión: ${e.message}"
+                }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Credenciales incorrectas. Intenta de nuevo."
+                        errorMessage = errorMessage
+                    )
+                }
+
+            } catch (e: Exception) {
+                // ========== ERRORES GENERALES ==========
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error inesperado: ${e.message}"
                     )
                 }
             }
         }
     }
 
-     //Evento: el usuario presionó "Olvidé mi contraseña".
-
+    /**
+     * Evento: el usuario presionó "Olvidé mi contraseña"
+     */
     fun onForgotPasswordClick() {
-        // TODO: Implementar navegación o lógica de recuperación
-        // Por ahora solo limpiamos el error
+        // TODO: Implementar recuperación de contraseña con Firebase
+        // authRepository.sendPasswordResetEmail(email)
         _uiState.update { it.copy(errorMessage = null) }
-    }
-    //auth
-    private fun simulateLogin(email: String, password: String): Boolean {
-        // acepta cualquier email con pass >= 8 caracteres
-        return email.contains("@") || email.length >= 10
     }
 }

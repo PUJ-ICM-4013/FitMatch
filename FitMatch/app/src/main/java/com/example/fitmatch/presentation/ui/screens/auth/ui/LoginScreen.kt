@@ -4,14 +4,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -39,18 +40,14 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     val colors = MaterialTheme.colorScheme
-
-    // collectAsStateWithLifecycle respeta el ciclo de vida del Composable
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val scrollState = rememberScrollState()
 
     Scaffold(
         containerColor = colors.background,
         topBar = {
-            // ===== Header unificado: título centrado + back =====
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 color = colors.surface,
                 tonalElevation = 1.dp,
                 shadowElevation = 1.dp
@@ -60,7 +57,6 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 14.dp)
                 ) {
-                    // Back (izquierda)
                     IconButton(
                         onClick = onBackClick,
                         modifier = Modifier.align(Alignment.CenterStart)
@@ -70,10 +66,8 @@ fun LoginScreen(
                             contentDescription = "Volver",
                             tint = colors.onSurface
                         )
-
                     }
 
-                    // Título centrado (misma tipografía que el resto)
                     Text(
                         text = "Iniciar sesión",
                         style = MaterialTheme.typography.titleLarge.copy(
@@ -93,21 +87,23 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(colors.background)
                 .padding(inner)
-                .padding(24.dp),
+                .verticalScroll(scrollState)
+                .padding(24.dp)
+                .imePadding(), // ← Importante para el teclado
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // texto de apoyo
+            // Texto de apoyo
             Text(
                 text = "Ingresa a tu cuenta y encuentra nuevas ofertas",
                 style = MaterialTheme.typography.bodyMedium.copy(color = colors.onSurfaceVariant),
                 textAlign = TextAlign.Center
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
 
             /* ------------------------ Email / Teléfono ------------------------ */
             OutlinedTextField(
-                value = uiState.email, //lee del estado
+                value = uiState.email,
                 onValueChange = { viewModel.onEmailOrPhoneChanged(it) },
                 label = { Text("Introduce tu cuenta") },
                 placeholder = {
@@ -129,7 +125,8 @@ fun LoginScreen(
                     focusedContainerColor = colors.surface,
                     unfocusedContainerColor = colors.surface
                 ),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                enabled = !uiState.isLoading
             )
 
             Spacer(Modifier.height(16.dp))
@@ -150,12 +147,17 @@ fun LoginScreen(
                 trailingIcon = {
                     IconButton(onClick = { viewModel.onTogglePasswordVisibility() }) {
                         Icon(
-                            imageVector = if (uiState.showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                            contentDescription = if (uiState.showPassword) "Ocultar contraseña" else "Mostrar contraseña",
+                            imageVector = if (uiState.showPassword)
+                                Icons.Filled.VisibilityOff
+                            else
+                                Icons.Filled.Visibility,
+                            contentDescription = if (uiState.showPassword)
+                                "Ocultar contraseña"
+                            else
+                                "Mostrar contraseña",
                             tint = colors.onSurfaceVariant
                         )
                     }
-
                 },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = colors.primary,
@@ -167,12 +169,13 @@ fun LoginScreen(
                     focusedContainerColor = colors.surface,
                     unfocusedContainerColor = colors.surface
                 ),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                enabled = !uiState.isLoading
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // link “olvidé mi pass”
+            // Link "olvidé mi pass"
             Text(
                 text = "¿Olvidaste tu contraseña?",
                 style = MaterialTheme.typography.labelLarge.copy(color = colors.primary),
@@ -185,39 +188,47 @@ fun LoginScreen(
                     .padding(vertical = 8.dp)
             )
 
-            Spacer(Modifier.weight(1f))
-            //error
-            if (uiState.errorMessage != null) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = uiState.errorMessage!!,
-                    color = colors.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
 
-            // Personaje "Tito" (imagen desde drawable)
+            // Mensaje de error
+            if (uiState.errorMessage != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colors.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = uiState.errorMessage!!,
+                        color = colors.onErrorContainer,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // Personaje "Tito"
             Image(
                 painter = painterResource(id = R.drawable.guru),
                 contentDescription = "Tito",
-                modifier = Modifier.size(370.dp),
+                modifier = Modifier
+                    .size(280.dp)
+                    .padding(vertical = 16.dp),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(24.dp))
 
             // Botón principal
             Button(
                 onClick = {
-                    viewModel.onLoginClick(onSuccess = onLoginSuccess) // ← Evento con callback
+                    viewModel.onLoginClick(onSuccess = onLoginSuccess)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
-                enabled = uiState.isLoginEnabled && !uiState.isLoading, // ← Estado controla habilitación
+                enabled = uiState.isLoginEnabled && !uiState.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
                     contentColor = colors.onPrimary,
@@ -227,7 +238,6 @@ fun LoginScreen(
                 shape = MaterialTheme.shapes.large
             ) {
                 if (uiState.isLoading) {
-                    // Mostrar indicador de carga
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = colors.onPrimary,
@@ -242,15 +252,16 @@ fun LoginScreen(
                     )
                 }
             }
-        }
-    }}
 
-// Con el heytitoTheme
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
 
 @Preview(showBackground = true, showSystemUi = true, name = "Login – Light")
 @Composable
 private fun LoginScreenPreviewLight() {
-    FitMatchTheme (darkTheme = false, dynamicColor = false) {
+    FitMatchTheme(darkTheme = false, dynamicColor = false) {
         LoginScreen()
     }
 }

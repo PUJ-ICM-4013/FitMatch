@@ -43,6 +43,9 @@ import com.example.fitmatch.presentation.ui.screens.common.ui.ProductDetailScree
 import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.fitmatch.data.auth.FirebaseAuthRepository
+import kotlinx.coroutines.launch
 
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 
@@ -138,23 +141,64 @@ fun MainNavigation() {
             composable(AppScreens.Welcome.route) {
                 WelcomeScreen(
                     onCreateAccount = { navController.navigate(AppScreens.Register.route) },
+                    onContinueWithEmail = { navController.navigate(AppScreens.Login.route) },
                     onContinueWithGoogle = { navController.navigate(AppScreens.Login.route) },
-                    onContinueWithFacebook = { navController.navigate(AppScreens.Login.route) }
+                    onContinueWithFacebook = { navController.navigate(AppScreens.Login.route) },
+                    // NUEVOS CALLBACKS
+                    onNavigateToCompleteProfile = { userId ->
+                        navController.navigate(AppScreens.CompleteProfile.withUserId(userId)) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToHome = { userId ->
+                        // Usuario existente con perfil completo
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
             composable(AppScreens.Login.route) {
-                // ViewModel con scope a este destino de navegación
                 val loginViewModel: LoginViewModel = viewModel()
+                val authRepository = remember { FirebaseAuthRepository() }
+                val scope = rememberCoroutineScope()
 
                 LoginScreen(
                     viewModel = loginViewModel,
                     onBackClick = { navController.popBackStack() },
                     onLoginSuccess = {
-                        // Navegar a Home (por defecto Cliente)
-                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
-                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                            launchSingleTop = true
+                        // Obtener el perfil del usuario para saber su rol
+                        scope.launch {
+                            val currentUser = authRepository.currentUser()
+                            if (currentUser != null) {
+                                val profileResult = authRepository.getUserProfile(currentUser.uid)
+
+                                profileResult.onSuccess { user ->
+                                    if (user != null) {
+                                        // Navegar según el rol del usuario
+                                        val role = user.role.ifBlank { "Cliente" }
+                                        navController.navigate(AppScreens.Home.withRole(role)) {
+                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    } else {
+                                        // Usuario sin perfil (no debería pasar)
+                                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                }.onFailure {
+                                    // Error al obtener perfil, navegar a Cliente por defecto
+                                    navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                                        popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+                            }
                         }
                     },
                     onForgotPasswordClick = {
@@ -187,6 +231,34 @@ fun MainNavigation() {
                     }
                 )
             }
+
+            composable(
+                route = AppScreens.CompleteProfile.route,
+                arguments = listOf(navArgument("userId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId") ?: ""
+
+                CompleteProfileScreen(
+                    userId = userId,
+                    onBackClick = { navController.popBackStack() },
+                    onContinue = { role ->
+                        // Después de completar el perfil, navegar según el rol
+                        if (role.equals("Vendedor", ignoreCase = true)) {
+                            navController.navigate(AppScreens.Home.withRole(role)) {
+                                popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        } else {
+                            // Clientes van a Preferences
+                            navController.navigate(AppScreens.Preferences.route) {
+                                popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                )
+            }
+
             composable(AppScreens.Preferences.route) {
                 PreferencesFlowScreen (
                     onBackToRegister = { navController.popBackStack() },
