@@ -339,6 +339,7 @@ fun MainNavigation() {
             }
 
             //Completar el perfil despues de continuar con Google o Facebook
+            /*
             composable("completeProfile/{userId}") { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId") ?: ""
                 CompleteProfileScreen(
@@ -352,6 +353,7 @@ fun MainNavigation() {
                     }
                 )
             }
+            */
         }
     }
 }

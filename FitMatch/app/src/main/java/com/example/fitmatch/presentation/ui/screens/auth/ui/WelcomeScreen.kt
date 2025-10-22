@@ -51,7 +51,7 @@ fun WelcomeScreen(
     onContinueWithEmail: () -> Unit = {},
     onContinueWithGoogle: () -> Unit = {},
     onContinueWithFacebook: () -> Unit = {},
-    onNavigateToCompleteProfile: (userId: String) -> Unit = {}, // ✅ Nueva
+    onNavigateToCompleteProfile: (userId: String) -> Unit = {},
     onNavigateToHome: (userId: String) -> Unit = {},
     viewModel: WelcomeViewModel = viewModel()
 ) {
@@ -73,7 +73,7 @@ fun WelcomeScreen(
                     // Lambda con LoginResult
                     viewModel.onGoogleSignIn(it) { result ->
                         if (result.isNewUser) {
-                            onNavigateToCompleteProfile(result.userId)
+                            onContinueWithGoogle()
                         } else {
                             onNavigateToHome(result.userId)
                         }
@@ -85,7 +85,9 @@ fun WelcomeScreen(
         }
     }
 
-    // ========== FACEBOOK SIGN-IN ==========
+    // ========== FACEBOOK SIGN-IN - DESHABILITADO TEMPORALMENTE ==========
+    // TODO: Configurar Facebook SDK correctamente antes de habilitar
+    /*
     val callbackManager = remember { CallbackManager.Factory.create() }
 
     DisposableEffect(Unit) {
@@ -117,6 +119,7 @@ fun WelcomeScreen(
             LoginManager.getInstance().unregisterCallback(callbackManager)
         }
     }
+    */
 
     Box(
         modifier = Modifier
@@ -238,7 +241,7 @@ fun WelcomeScreen(
 
                 // Botón Continuar con Google
                 Button(
-                    onClick = handleGoogleSignIn, // ✅ Llama a la función local
+                    onClick = handleGoogleSignIn, // Llama a la función local
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -267,7 +270,9 @@ fun WelcomeScreen(
                     }
                 }
 
-                // Botón Continuar con Facebook
+                // ========== BOTÓN FACEBOOK DESHABILITADO ==========
+                // TODO: Habilitar después de configurar Facebook SDK
+                /*
                 Button(
                     onClick = {
                         LoginManager.getInstance().logInWithReadPermissions(
@@ -288,6 +293,7 @@ fun WelcomeScreen(
                 ) {
                     Text("Continuar con Facebook", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 }
+                */
             }
 
             Spacer(modifier = Modifier.height(16.dp))
