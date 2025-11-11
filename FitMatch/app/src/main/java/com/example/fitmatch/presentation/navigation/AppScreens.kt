@@ -23,4 +23,5 @@ sealed class AppScreens (val route: String) {
     object ChatList : AppScreens("chat_list")
     object TitoChat : AppScreens("tito_chat")
     object Favorites : AppScreens("favorites")
+    object Create : AppScreens("create_product")
 }

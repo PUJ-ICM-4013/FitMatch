@@ -46,6 +46,7 @@ import com.example.fitmatch.presentation.ui.screens.common.ui.ProductDetailScree
 import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
+import com.example.fitmatch.presentation.ui.screens.vendedor.CreateProductScreen
 import androidx.compose.runtime.rememberCoroutineScope
 import com.example.fitmatch.data.auth.FirebaseAuthRepository
 import kotlinx.coroutines.launch
@@ -165,43 +166,17 @@ fun MainNavigation() {
             }
 
             composable(AppScreens.Login.route) {
+                // ViewModel con scope a este destino de navegación
                 val loginViewModel: LoginViewModel = viewModel()
-                val authRepository = remember { FirebaseAuthRepository() }
-                val scope = rememberCoroutineScope()
 
                 LoginScreen(
                     viewModel = loginViewModel,
                     onBackClick = { navController.popBackStack() },
                     onLoginSuccess = {
-                        // Obtener el perfil del usuario para saber su rol
-                        scope.launch {
-                            val currentUser = authRepository.currentUser()
-                            if (currentUser != null) {
-                                val profileResult = authRepository.getUserProfile(currentUser.uid)
-
-                                profileResult.onSuccess { user ->
-                                    if (user != null) {
-                                        // Navegar según el rol del usuario
-                                        val role = user.role.ifBlank { "Cliente" }
-                                        navController.navigate(AppScreens.Home.withRole(role)) {
-                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    } else {
-                                        // Usuario sin perfil (no debería pasar)
-                                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
-                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                }.onFailure {
-                                    // Error al obtener perfil, navegar a Cliente por defecto
-                                    navController.navigate(AppScreens.Home.withRole("Cliente")) {
-                                        popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
+                        // Navegar a Home (por defecto Cliente)
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     onForgotPasswordClick = {
@@ -291,7 +266,7 @@ fun MainNavigation() {
                         onComentariosClick = {},
                         onEstadisticasClick = {},
                         onMisPedidosClick = {},
-                        onAgregarProductoClick = {},
+                        onAgregarProductoClick = {navController.navigate(AppScreens.Create.route)},
                         onMostrarProductosClick = {}
                     )
                 } else {
@@ -416,6 +391,10 @@ fun MainNavigation() {
                     onBackClick = { navController.popBackStack() },
                     onFollowClick = {},
                     onProductClick = {}
+                )
+            }
+            composable (AppScreens.Create.route){
+                CreateProductScreen (
                 )
             }
 
