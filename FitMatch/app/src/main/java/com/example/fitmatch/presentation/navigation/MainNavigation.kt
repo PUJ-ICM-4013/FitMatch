@@ -42,6 +42,7 @@ import com.example.fitmatch.presentation.ui.screens.common.ui.ProductDetailScree
 import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
+import com.example.fitmatch.presentation.ui.screens.vendedor.CreateProductScreen
 
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 
@@ -215,7 +216,7 @@ fun MainNavigation() {
                         onComentariosClick = {},
                         onEstadisticasClick = {},
                         onMisPedidosClick = {},
-                        onAgregarProductoClick = {},
+                        onAgregarProductoClick = {navController.navigate(AppScreens.Create.route)},
                         onMostrarProductosClick = {}
                     )
                 } else {
@@ -334,6 +335,10 @@ fun MainNavigation() {
                     onBackClick = { navController.popBackStack() },
                     onFollowClick = {},
                     onProductClick = {}
+                )
+            }
+            composable (AppScreens.Create.route){
+                CreateProductScreen (
                 )
             }
         }
