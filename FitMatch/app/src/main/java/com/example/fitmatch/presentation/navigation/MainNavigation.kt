@@ -395,6 +395,7 @@ fun MainNavigation() {
             }
             composable (AppScreens.Create.route){
                 CreateProductScreen (
+                    onCloseClick = {navController.popBackStack()}
                 )
             }
 

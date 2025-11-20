@@ -14,11 +14,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        Configuration.getInstance().apply {
-            userAgentValue = packageName
-            // Configurar cache de tiles
-            osmdroidTileCache = cacheDir
-        }
         setContent {
             FitMatchTheme {
                 Surface(
