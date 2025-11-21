@@ -44,7 +44,7 @@ output-metadata.json
 *.keystore
 
 # Firebase / Google services (include only if safe)
-# google-services.json
+google-services.json
 
 # Other IDE artifacts
 proguard-rules.pro
