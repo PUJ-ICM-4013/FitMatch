@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitmatch.presentation.ui.screens.cliente.state.ClienteDashboardUiState
@@ -19,6 +20,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+
 
 
 class ClienteDashboardViewModel(
@@ -122,7 +126,7 @@ class ClienteDashboardViewModel(
         }
     }
 
-    //sencibilidad sensor
+    //sensibilidad sensor
     fun onAdjustTiltSensitivity(sensitivity: Float) {
         _uiState.update { it.copy(tiltSensitivity = sensitivity) }
     }
@@ -188,6 +192,7 @@ class ClienteDashboardViewModel(
                     _events.send(DashboardEvent.ShowTiltFeedback("PASS", isLeft = true))
                 }
             }
+
             x > threshold -> {
                 // Inclinado a la derecha → LIKE
                 lastTiltActionTime = currentTime
@@ -272,12 +277,49 @@ class ClienteDashboardViewModel(
         }
     }
 
+    /* Implementar despues
+    //activar sensor temperatura
+    fun onToggleTemperatureFilter(enabled: Boolean) {
+        _uiState.value = _uiState.value.copy(isTemperatureFilterEnabled = enabled)
+    }
+*/
+    // --- SENSOR DE TEMPERATURA ---
+
+    private var temperatureSensor: Sensor? = null
+    private val _temperature = MutableStateFlow<Float?>(null)
+    val temperature: StateFlow<Float?> = _temperature
+
+    private val temperatureListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+            _temperature.value = event.values[0]
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+    }
+
+    fun startTemperatureSensor() {
+        temperatureSensor = sensorManager?.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE)
+        if (temperatureSensor != null) {
+            sensorManager?.registerListener(temperatureListener, temperatureSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        } else {
+            // si el dispositivo no tiene sensor, usar una temperatura simulada
+            _temperature.value = 23.0f
+        }
+    }
+
+    fun stopTemperatureSensor() {
+        sensorManager?.unregisterListener(temperatureListener)
+    }
+
+
     // sensor
 
     override fun onCleared() {
         super.onCleared()
         stopTiltSensor()
+        stopTemperatureSensor()
     }
+
 }
 
 //eventos de swipe y nav

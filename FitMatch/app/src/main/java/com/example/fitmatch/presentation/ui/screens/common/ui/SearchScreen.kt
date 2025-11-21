@@ -46,14 +46,19 @@ data class PriceRange(
     val max: String
 )
 
+
 // Sin @Preview aquí. Los previews van al final envueltos en FitMatchTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     onBackClick: () -> Unit = {},
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    isTemperatureFilterEnabled: Boolean,
+    onToggleTemperatureFilter: (Boolean) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
+
+    var temperatureFilter by remember { mutableStateOf(isTemperatureFilterEnabled) }
 
     var searchText by remember { mutableStateOf("") }
 
@@ -327,6 +332,45 @@ fun SearchScreen(
             }
         }
 
+        // Filtro de temperatura
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = "Filtrar por temperatura",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colors.onSurface,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (temperatureFilter) "Activado" else "Desactivado",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = if (temperatureFilter) colors.primary else colors.onSurfaceVariant
+                        )
+                    )
+
+                    Switch(
+                        checked = temperatureFilter,
+                        onCheckedChange = {
+                            temperatureFilter = it
+                            onToggleTemperatureFilter(it)
+                        }
+                    )
+                }
+            }
+        }
+
+
         item {
             // Ubicación
             Column(
@@ -516,13 +560,16 @@ private fun PriceRangeChip(
     }
 }
 
-// Previews con el FitMatchTheme
-
 @Preview(showBackground = true, name = "Search – Light (Brand)")
 @Composable
 private fun SearchPreviewLight() {
     FitMatchTheme(darkTheme = false, dynamicColor = false) {
-        SearchScreen()
+        SearchScreen(
+            onBackClick = {},
+            onSearchClick = {},
+            isTemperatureFilterEnabled = false,
+            onToggleTemperatureFilter = {}
+        )
     }
 }
 
@@ -530,6 +577,11 @@ private fun SearchPreviewLight() {
 @Composable
 private fun SearchPreviewDark() {
     FitMatchTheme(darkTheme = true, dynamicColor = false) {
-        SearchScreen()
+        SearchScreen(
+            onBackClick = {},
+            onSearchClick = {},
+            isTemperatureFilterEnabled = true,
+            onToggleTemperatureFilter = {}
+        )
     }
 }

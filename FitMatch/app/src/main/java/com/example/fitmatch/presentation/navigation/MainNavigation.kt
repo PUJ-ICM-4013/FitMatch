@@ -10,7 +10,9 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,6 +36,7 @@ import com.example.fitmatch.presentation.ui.screens.cliente.FavoritesScreen
 import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.PreferencesFlowScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.ProfileScreen
+import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.ClienteDashboardViewModel
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatListScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.DeliveryPickupScreen
@@ -43,6 +46,7 @@ import com.example.fitmatch.presentation.ui.screens.common.ui.ProductDetailScree
 import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
+import com.example.fitmatch.presentation.ui.screens.vendedor.CreateProductScreen
 import androidx.compose.runtime.rememberCoroutineScope
 import com.example.fitmatch.data.auth.FirebaseAuthRepository
 import kotlinx.coroutines.launch
@@ -162,43 +166,17 @@ fun MainNavigation() {
             }
 
             composable(AppScreens.Login.route) {
+                // ViewModel con scope a este destino de navegación
                 val loginViewModel: LoginViewModel = viewModel()
-                val authRepository = remember { FirebaseAuthRepository() }
-                val scope = rememberCoroutineScope()
 
                 LoginScreen(
                     viewModel = loginViewModel,
                     onBackClick = { navController.popBackStack() },
                     onLoginSuccess = {
-                        // Obtener el perfil del usuario para saber su rol
-                        scope.launch {
-                            val currentUser = authRepository.currentUser()
-                            if (currentUser != null) {
-                                val profileResult = authRepository.getUserProfile(currentUser.uid)
-
-                                profileResult.onSuccess { user ->
-                                    if (user != null) {
-                                        // Navegar según el rol del usuario
-                                        val role = user.role.ifBlank { "Cliente" }
-                                        navController.navigate(AppScreens.Home.withRole(role)) {
-                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    } else {
-                                        // Usuario sin perfil (no debería pasar)
-                                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
-                                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    }
-                                }.onFailure {
-                                    // Error al obtener perfil, navegar a Cliente por defecto
-                                    navController.navigate(AppScreens.Home.withRole("Cliente")) {
-                                        popUpTo(AppScreens.Welcome.route) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
+                        // Navegar a Home (por defecto Cliente)
+                        navController.navigate(AppScreens.Home.withRole("Cliente")) {
+                            popUpTo(AppScreens.Welcome.route) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     onForgotPasswordClick = {
@@ -288,7 +266,7 @@ fun MainNavigation() {
                         onComentariosClick = {},
                         onEstadisticasClick = {},
                         onMisPedidosClick = {},
-                        onAgregarProductoClick = {},
+                        onAgregarProductoClick = {navController.navigate(AppScreens.Create.route)},
                         onMostrarProductosClick = {}
                     )
                 } else {
@@ -305,14 +283,20 @@ fun MainNavigation() {
             }
 
             composable(AppScreens.Search.route) {
+                var isTemperatureFilterEnabled by remember { mutableStateOf(false) }
+
                 SearchScreen(
                     onBackClick = { navController.popBackStack() },
                     onSearchClick = {
-                        // Navega a donde prefieras tras buscar:
                         navController.navigate(AppScreens.ProductDetail.route)
+                    },
+                    isTemperatureFilterEnabled = isTemperatureFilterEnabled,
+                    onToggleTemperatureFilter = { enabled ->
+                        isTemperatureFilterEnabled = enabled
                     }
                 )
             }
+
 
             composable(AppScreens.ProductDetail.route) {
                 ProductDetailScreen(
@@ -407,6 +391,11 @@ fun MainNavigation() {
                     onBackClick = { navController.popBackStack() },
                     onFollowClick = {},
                     onProductClick = {}
+                )
+            }
+            composable (AppScreens.Create.route){
+                CreateProductScreen (
+                    onCloseClick = {navController.popBackStack()}
                 )
             }
 
