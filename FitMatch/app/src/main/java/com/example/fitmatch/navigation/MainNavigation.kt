@@ -330,8 +330,25 @@ fun MainNavigation() {
 
 
             // Chat genérico (si tienes una pantalla sin id)
-            composable(AppScreens.Chat.route) {
+            composable(
+                AppScreens.Chat.route,
+                arguments = listOf(
+                    navArgument("chatId") { type = NavType.StringType },
+                    navArgument("contactName") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    },
+                    navArgument("otherUserId") {
+                        type = NavType.StringType
+                        defaultValue = ""
+                    }
+                )
+            ) { backStackEntry ->
+                val chatId = backStackEntry.arguments?.getString("chatId") ?: return@composable
+                val contactName = backStackEntry.arguments?.getString("contactName").orEmpty()
                 ChatScreen(
+                    chatId = chatId,
+                    contactName = contactName,
                     onBackClick = { navController.popBackStack() },
                     onMoreClick = {},
                     onCallClick = {}
@@ -341,11 +358,13 @@ fun MainNavigation() {
             // Chat list -> abre chat por id o Tito
             composable(AppScreens.ChatList.route) {
                 ChatListScreen(
-                    onOpenChat = { chatId, isTito ->
+                    onOpenChat = { chatId, isTito, contactName, otherUserId ->
                         if (isTito) {
                             navController.navigate(AppScreens.TitoChat.route)
                         } else {
-                            navController.navigate("chat/$chatId")
+                            navController.navigate(
+                                AppScreens.Chat.withArgs(chatId, contactName, otherUserId)
+                            )
                         }
                     },
                     onBackClick = { navController.popBackStack() },
