@@ -10,6 +10,8 @@ import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class WearDataLayerManager(private val context: Context) {
 
@@ -26,7 +28,7 @@ class WearDataLayerManager(private val context: Context) {
     /**
      * Reloj solicita siguiente prenda al móvil
      */
-    suspend fun requestNextProduct(): Boolean = suspendCancellableCoroutine { cont ->
+    suspend fun requestNextProduct(): Boolean = withContext(Dispatchers.IO) {
         try {
             val putDataMapRequest = PutDataMapRequest.create(REQUEST_NEXT_PATH)
             putDataMapRequest.dataMap.putLong("timestamp", System.currentTimeMillis())
@@ -35,17 +37,17 @@ class WearDataLayerManager(private val context: Context) {
             Tasks.await(task)
 
             Log.d(TAG, "Solicitud enviada al móvil")
-            cont.resume(true)
+            true
         } catch (e: Exception) {
             Log.e(TAG, "Error solicitando producto: ${e.message}")
-            cont.resumeWithException(e)
+            throw e
         }
     }
 
     /**
      * Reloj envía acción LIKE al móvil
      */
-    suspend fun sendLike(productId: String): Boolean = suspendCancellableCoroutine { cont ->
+    suspend fun sendLike(productId: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val putDataMapRequest = PutDataMapRequest.create(ACTION_LIKE_PATH)
             putDataMapRequest.dataMap.apply {
@@ -57,17 +59,17 @@ class WearDataLayerManager(private val context: Context) {
             Tasks.await(task)
 
             Log.d(TAG, "LIKE enviado: $productId")
-            cont.resume(true)
+            true
         } catch (e: Exception) {
             Log.e(TAG, "Error enviando LIKE: ${e.message}")
-            cont.resumeWithException(e)
+            throw e
         }
     }
 
     /**
      * Reloj envía acción PASS al móvil
      */
-    suspend fun sendPass(productId: String): Boolean = suspendCancellableCoroutine { cont ->
+    suspend fun sendPass(productId: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val putDataMapRequest = PutDataMapRequest.create(ACTION_PASS_PATH)
             putDataMapRequest.dataMap.apply {
@@ -79,10 +81,10 @@ class WearDataLayerManager(private val context: Context) {
             Tasks.await(task)
 
             Log.d(TAG, "PASS enviado: $productId")
-            cont.resume(true)
+            true
         } catch (e: Exception) {
             Log.e(TAG, "Error enviando PASS: ${e.message}")
-            cont.resumeWithException(e)
+            throw e
         }
     }
 

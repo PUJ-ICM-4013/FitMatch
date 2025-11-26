@@ -68,11 +68,12 @@
         <service
             android:name=".data.wear.MobileWearDataLayerListenerService"
             android:exported="true"
-            android:enabled="true"
-            tools:node="merge">
+            android:enabled="true">
             <intent-filter>
-                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
-                <data android:scheme="wear" android:host="*" android:pathPrefix="/" />
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*" />
             </intent-filter>
         </service>
     </application>

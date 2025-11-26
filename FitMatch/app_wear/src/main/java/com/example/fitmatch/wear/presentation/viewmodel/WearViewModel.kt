@@ -37,26 +37,46 @@ class WearViewModel(application: Application) : AndroidViewModel(application) {
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            intent.getStringExtra(WearDataLayerListenerService.EXTRA_MESSAGE_DATA)?.let { data ->
-                try {
-                    val json = JSONObject(data)
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            matches = json.optInt("matches", currentState.matches),
-                            messages = json.optInt("messages", currentState.messages)
-                        )
+            when (intent.action) {
+                WearDataLayerListenerService.ACTION_PRODUCT_RECEIVED -> {
+                    // Producto recibido del móvil
+                    val productJson =
+                        intent.getStringExtra(WearDataLayerListenerService.EXTRA_PRODUCT_JSON)
+                    if (productJson != null) {
+                        receiveProduct(productJson)
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                }
+
+                WearDataLayerListenerService.ACTION_DATA_UPDATED -> {
+                    // Otros datos (matches, mensajes, etc.)
+                    intent.getStringExtra(WearDataLayerListenerService.EXTRA_MESSAGE_DATA)
+                        ?.let { data ->
+                            try {
+                                val json = JSONObject(data)
+                                _uiState.update { currentState ->
+                                    currentState.copy(
+                                        matches = json.optInt("matches", currentState.matches),
+                                        messages = json.optInt("messages", currentState.messages)
+                                    )
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
                 }
             }
         }
     }
 
+
     init {
+        val filter = IntentFilter().apply {
+            addAction(WearDataLayerListenerService.ACTION_PRODUCT_RECEIVED)
+            addAction(WearDataLayerListenerService.ACTION_DATA_UPDATED)
+        }
         LocalBroadcastManager.getInstance(getApplication()).registerReceiver(
             broadcastReceiver,
-            IntentFilter(WearDataLayerListenerService.ACTION_DATA_UPDATED)
+            filter
         )
     }
 
