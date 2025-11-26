@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,8 +53,17 @@ import com.example.fitmatch.presentation.ui.screens.vendedor.CreateProductScreen
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 
 @Composable
-fun MainNavigation() {
+fun MainNavigation(startChatId: String? = null ) {
     val navController = rememberNavController()
+    // Si venimos desde una notificación y aún no navegamos al chat
+    if (startChatId != null) {
+        LaunchedEffect(startChatId) {
+            navController.navigate(AppScreens.Chat.withArgs(startChatId, "", "")) {
+                launchSingleTop = true
+            }
+        }
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val currentRole = navBackStackEntry?.arguments?.getString("role")
