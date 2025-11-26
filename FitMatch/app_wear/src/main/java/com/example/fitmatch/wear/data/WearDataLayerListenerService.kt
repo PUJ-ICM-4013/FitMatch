@@ -1,40 +1,29 @@
 package com.example.fitmatch.wear.data
 
-import android.util.Log
-import com.google.android.gms.tasks.Tasks
-import com.google.android.gms.wearable.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import android.content.Intent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.WearableListenerService
+import org.json.JSONObject
 
 class WearDataLayerListenerService : WearableListenerService() {
 
     companion object {
-        private const val TAG = "WearDataLayer"
-        const val PRODUCT_DATA_PATH = "/fitmatch/product"
-        const val ACTION_PATH = "/fitmatch/action"
-        const val SYNC_PATH = "/fitmatch/sync"
+        const val ACTION_DATA_UPDATED = "com.example.fitmatch.wear.DATA_UPDATED"
+        const val EXTRA_MESSAGE_DATA = "message_data"
     }
 
     override fun onMessageReceived(messageEvent: MessageEvent) {
-        Log.d(TAG, "Mensaje recibido: ${messageEvent.path}")
-
         when (messageEvent.path) {
-            ACTION_PATH -> {
-                // Móvil recibe acción (like/pass) del reloj
-                val action = String(messageEvent.data)
-                handleAction(action)
+            "/match_update", "/profile_update" -> {
+                val data = String(messageEvent.data, Charsets.UTF_8)
+
+                // Broadcast para actualizar el UI
+                val intent = Intent(ACTION_DATA_UPDATED).apply {
+                    putExtra(EXTRA_MESSAGE_DATA, data)
+                }
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
             }
         }
-    }
-
-    override fun onDataChanged(dataEvents: DataEventBuffer) {
-        dataEvents.forEach { dataEvent ->
-            Log.d(TAG, "Datos cambiados: ${dataEvent.dataItem.uri.path}")
-        }
-    }
-
-    private fun handleAction(action: String) {
-        Log.d(TAG, "Acción desde reloj: $action")
-        // Notificar al ViewModel en el móvil
     }
 }

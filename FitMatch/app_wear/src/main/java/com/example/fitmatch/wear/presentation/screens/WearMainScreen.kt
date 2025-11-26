@@ -20,10 +20,19 @@ import androidx.wear.compose.material.Text
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitmatch.wear.model.WearProduct
 import com.example.fitmatch.wear.presentation.viewmodel.WearViewModel
+import com.example.fitmatch.wear.presentation.viewmodel.WearViewModelFactory
+import android.app.Application
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun WearMainScreen(viewModel: WearViewModel = viewModel()) {
-    val uiState by viewModel.uiState.collectAsState()
+fun WearMainScreen(
+    viewModel: WearViewModel = viewModel(
+        factory = WearViewModelFactory(
+            LocalContext.current.applicationContext as Application
+        )
+    )
+) {    val uiState by viewModel.uiState.collectAsState()
 
     Box(
         modifier = Modifier

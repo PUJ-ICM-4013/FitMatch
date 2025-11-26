@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.fitmatch.wear"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.fitmatch.wear"
@@ -63,9 +61,9 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // Wear
-    implementation("androidx.wear.compose:wear-compose-foundation:1.2.1")
-    implementation("androidx.wear.compose:wear-compose-material:1.2.1")
-    implementation("androidx.wear.compose:wear-compose-navigation:1.2.1")
+    implementation("androidx.wear.compose:compose-foundation:1.3.1")
+    implementation("androidx.wear.compose:compose-material:1.3.1")
+    implementation("androidx.wear.compose:compose-navigation:1.3.1")
 
     // Data Layer (comunica con móvil)
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
@@ -79,4 +77,6 @@ dependencies {
 
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 }
