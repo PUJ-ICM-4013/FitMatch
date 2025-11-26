@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -32,17 +31,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.R
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.WelcomeViewModel
+import com.example.fitmatch.presentation.viewmodel.login.WelcomeViewModel
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import kotlinx.coroutines.launch
 import android.util.Log
-import androidx.compose.runtime.*
 
 
 @Composable

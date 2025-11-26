@@ -1,4 +1,4 @@
-package com.example.fitmatch.presentation.ui.screens.cliente.viewmodel
+package com.example.fitmatch.presentation.viewmodel.user
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

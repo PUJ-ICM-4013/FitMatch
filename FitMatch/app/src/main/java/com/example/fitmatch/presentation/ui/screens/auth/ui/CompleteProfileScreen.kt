@@ -20,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.presentation.ui.screens.auth.state.CompleteProfileUiState
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.CompleteProfileViewModel
+import com.example.fitmatch.presentation.viewmodel.login.CompleteProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,7 +193,7 @@ fun CompleteProfileScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colors.primary,
                         unfocusedBorderColor = colors.outline,

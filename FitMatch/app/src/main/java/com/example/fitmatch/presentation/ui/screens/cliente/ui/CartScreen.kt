@@ -24,7 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.presentation.ui.screens.cliente.state.CartItemState
-import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.CartViewModel
+import com.example.fitmatch.presentation.viewmodel.user.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

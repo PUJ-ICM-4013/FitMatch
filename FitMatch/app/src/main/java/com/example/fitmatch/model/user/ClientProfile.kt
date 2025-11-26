@@ -1,5 +1,7 @@
 package com.example.fitmatch.model.user
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ClientProfile(
     val userId: String,
     val preferredSizes: List<String> = emptyList(),

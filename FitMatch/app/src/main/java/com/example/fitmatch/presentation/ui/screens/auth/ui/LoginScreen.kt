@@ -29,7 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.R
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.LoginViewModel
+import com.example.fitmatch.presentation.viewmodel.login.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -27,7 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.presentation.ui.screens.cliente.state.FavoriteProductState
-import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.FavoritesViewModel
+import com.example.fitmatch.presentation.viewmodel.user.FavoritesViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)

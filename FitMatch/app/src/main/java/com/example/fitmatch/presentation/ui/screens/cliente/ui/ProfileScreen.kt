@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
-import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.ProfileViewModel
+import com.example.fitmatch.presentation.viewmodel.user.ProfileViewModel
 
 data class ProfileSection(
     val title: String,

@@ -2,9 +2,11 @@ package com.example.fitmatch.data.auth
 
 import com.example.fitmatch.model.user.User
 import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.FacebookAuthProvider
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -54,11 +56,22 @@ class FirebaseAuthRepository(
                     else cont.resumeWithException(task.exception ?: Exception("Facebook sign-in failed"))
                 }
         }
-
     override suspend fun fetchSignInMethodsForEmail(email: String): List<String> {
-        val result = auth.fetchSignInMethodsForEmail(email).await()
-        return result.signInMethods ?: emptyList()
+        // Buscamos en la colección "users" si ya hay un usuario con ese email
+        val snapshot = firestore.collection("users")
+            .whereEqualTo("email", email)
+            .limit(1)
+            .get()
+            .await()
+
+        return if (!snapshot.isEmpty) {
+            // Solo soportas email+password, así que devolvemos ese método
+            listOf(EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD)
+        } else {
+            emptyList()
+        }
     }
+
 
     override suspend fun linkPendingCredentialWithEmail(
         email: String,

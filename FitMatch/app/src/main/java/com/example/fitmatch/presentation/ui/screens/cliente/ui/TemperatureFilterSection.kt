@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.TemperatureViewModel
+import com.example.fitmatch.presentation.viewmodel.user.TemperatureViewModel
 
 @Composable
 fun TemperatureFilterSection(

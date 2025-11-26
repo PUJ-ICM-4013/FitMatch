@@ -1,4 +1,4 @@
-package com.example.fitmatch.presentation.navigation
+package com.example.fitmatch.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -22,21 +22,22 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+
+import com.example.fitmatch.presentation.ui.screens.cliente.state.ProductCardState
 import com.example.fitmatch.presentation.ui.components.BottomNavItem
 import com.example.fitmatch.presentation.ui.components.BottomNavigationBar
 import com.example.fitmatch.presentation.ui.screens.auth.ui.CompleteProfileScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.LoginScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.RegisterScreen
 import com.example.fitmatch.presentation.ui.screens.auth.ui.WelcomeScreen
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.LoginViewModel
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.RegisterViewModel
+import com.example.fitmatch.presentation.viewmodel.login.LoginViewModel
+import com.example.fitmatch.presentation.viewmodel.login.RegisterViewModel
 import com.example.fitmatch.presentation.ui.screens.cliente.CartScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ClienteDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.FavoritesScreen
 import com.example.fitmatch.presentation.ui.screens.vendedor.VendedorDashboardScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.PreferencesFlowScreen
 import com.example.fitmatch.presentation.ui.screens.cliente.ui.ProfileScreen
-import com.example.fitmatch.presentation.ui.screens.cliente.viewmodel.ClienteDashboardViewModel
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatListScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.ChatScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.DeliveryPickupScreen
@@ -47,9 +48,6 @@ import com.example.fitmatch.presentation.ui.screens.common.ui.SearchScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.StoreProfileScreen
 import com.example.fitmatch.presentation.ui.screens.common.ui.TitoChatScreen
 import com.example.fitmatch.presentation.ui.screens.vendedor.CreateProductScreen
-import androidx.compose.runtime.rememberCoroutineScope
-import com.example.fitmatch.data.auth.FirebaseAuthRepository
-import kotlinx.coroutines.launch
 
 // Si tienes pantallas de vendedor, impórtalas y úsalas en el if(role=="Vendedor")
 
@@ -273,9 +271,15 @@ fun MainNavigation() {
                     ClienteDashboardScreen(
                         onBackClick = { navController.popBackStack() },
                         //onFollowClick = { },
-                        //onProductClick = { navController.navigate(AppScreens.ProductDetail.route) },
-                        //onStoreClick = { navController.navigate(AppScreens.StoreProfile.route) },
+                        onProductClick = { product ->
+                            navController.currentBackStackEntry?.savedStateHandle?.set(
+                                "productDetail",
+                                product
+                            )
+                            navController.navigate(AppScreens.ProductDetail.route)
+                        },                        //onStoreClick = { navController.navigate(AppScreens.StoreProfile.route) },
                         onFilterClick = { navController.navigate(AppScreens.Search.route) },
+                        //onOpen
                         //onOpenComments = { /* ... */ },
                         //onAddToCart = { /* ... */ }
                     )
@@ -300,7 +304,7 @@ fun MainNavigation() {
 
             composable(AppScreens.ProductDetail.route) {
                 ProductDetailScreen(
-                    onBuyClick = { navController.navigate(AppScreens.Cart.route) },
+                    product = navController.previousBackStackEntry?.savedStateHandle?.get<ProductCardState>("productDetail"),                    onBuyClick = { navController.navigate(AppScreens.Cart.route) },
                     onBackClick = { navController.popBackStack() }
                 )
             }

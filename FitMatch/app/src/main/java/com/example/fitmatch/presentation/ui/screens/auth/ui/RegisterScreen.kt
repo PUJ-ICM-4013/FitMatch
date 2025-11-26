@@ -31,7 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.R
 import com.example.fitmatch.presentation.ui.screens.auth.state.RegisterUiState
-import com.example.fitmatch.presentation.ui.screens.auth.viewmodel.RegisterViewModel
+import com.example.fitmatch.presentation.viewmodel.login.RegisterViewModel
 
 //pantalla de registro en donde el viewmodel maneja to do el estado
 //recibe el rol para navegar correctamente
@@ -302,7 +302,7 @@ fun RegisterScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true),
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colors.primary,
                         unfocusedBorderColor = colors.outline,
