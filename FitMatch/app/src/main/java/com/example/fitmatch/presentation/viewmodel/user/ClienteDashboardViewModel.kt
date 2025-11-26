@@ -26,7 +26,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import com.example.fitmatch.data.wear.MobileWearDataLayerManager
 import com.example.fitmatch.data.wear.MobileWearDataLayerListenerService
-import com.example.fitmatch.wear.model.WearProduct
+import com.example.fitmatch.model.product.WearProduct
 
 class ClienteDashboardViewModel(
     private val context: Context,

@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.*
-import com.example.fitmatch.wear.model.WearProduct
+import com.example.fitmatch.model.product.WearProduct
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -41,10 +41,10 @@ class MobileWearDataLayerManager(private val context: Context) {
             val task = dataClient.putDataItem(putDataMapRequest.asPutDataRequest())
             Tasks.await(task)
 
-            Log.d(TAG, "✅ Prenda enviada al reloj: ${product.title}")
+            Log.d(TAG, "Prenda enviada al reloj: ${product.title}")
             cont.resume(true)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error enviando prenda: ${e.message}")
+            Log.e(TAG, "Error enviando prenda: ${e.message}")
             cont.resumeWithException(e)
         }
     }
