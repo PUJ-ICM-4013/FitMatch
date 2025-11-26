@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "FitMatch"
 include(":app")
+include(":app_wear")
