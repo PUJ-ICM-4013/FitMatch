@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
+    <uses-feature
+        android:name="android.hardware.type.watch" />
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
@@ -48,6 +50,9 @@
         <meta-data
             android:name="com.facebook.sdk.ClientToken"
             android:value="@string/facebook_client_token"/>
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
 
         <activity
             android:name="com.facebook.FacebookActivity"
@@ -71,6 +76,11 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT"/>
             </intent-filter>
         </service>
+        <activity
+            android:name="com.example.fitmatch.presentation.ui.screens.wear.WearDashboardActivity"
+            android:exported="true"
+            android:label="FitMatch Wear Dashboard"
+            tools:ignore="GoogleAppIndexingWarning" />
     </application>
 
 </manifest>

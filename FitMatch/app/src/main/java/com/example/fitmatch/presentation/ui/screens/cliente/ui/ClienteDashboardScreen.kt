@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,6 +81,7 @@ fun ClienteDashboardScreen(
 
     // ========== OBSERVAR ESTADO ==========
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var isWearableConnected by rememberSaveable { mutableStateOf(false) }
 
     // ========== MANEJAR EVENTOS ==========
     val snackbarHostState = remember { SnackbarHostState() }
@@ -187,23 +189,33 @@ fun ClienteDashboardScreen(
                         }
                     }
 
-                    // 🔹 Título centrado
-                    Text(
-                        text = "Descubrir",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 22.sp,
-                            color = colors.onSurface
-                        ),
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-
                     // 🔹 Derecha: sensores y filtro
                     Row(
                         modifier = Modifier.align(Alignment.CenterEnd),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        AssistChip(
+                            onClick = { isWearableConnected = !isWearableConnected },
+                            label = {
+                                Text(
+                                    text = if (isWearableConnected) "activo" else "Conectar",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Watch,
+                                    contentDescription = null
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = if (isWearableConnected) colors.secondaryContainer else colors.surface,
+                                labelColor = if (isWearableConnected) colors.onSecondaryContainer else colors.onSurface,
+                                leadingIconContentColor = if (isWearableConnected) colors.onSecondaryContainer else colors.onSurfaceVariant
+                            )
+                        )
+
                         IconButton(
                             onClick = {
                                 viewModel.onToggleTiltSensor(!uiState.isTiltEnabled)

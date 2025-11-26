@@ -1,5 +1,6 @@
 package com.example.fitmatch.presentation.viewmodel.user
 
+
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -94,35 +95,35 @@ class ChatListViewModel(
                             error = e.message ?: "Error al cargar tus chats"
                         )
                     }
+                }
+                .collect { chats ->
+                    val rows = chats.map { chat ->
+                        val otherParticipant = chat.participantIds.firstOrNull { id -> id != userId }
+                        val resolvedName = try {
+                            loadUserName(otherParticipant)
+                        } catch (_: Exception) {
+                            otherParticipant?.takeIf { it.isNotBlank() } ?: "Chat"
                         }
-                        .collect { chats ->
-                            val rows = chats.map { chat ->
-                                val otherParticipant = chat.participantIds.firstOrNull { id -> id != userId }
-                                val resolvedName = try {
-                                    loadUserName(otherParticipant)
-                                } catch (_: Exception) {
-                                    otherParticipant?.takeIf { it.isNotBlank() } ?: "Chat"
-                                }
 
-                                ChatRowState(
-                                    id = chat.id,
-                                    title = resolvedName,
-                                    subtitle = chat.lastMessage.ifBlank { "Empieza la conversación" },
-                                    time = formatTimestamp(chat.lastMessageAt),
-                                    unread = chat.unreadCount[userId] ?: 0,
-                                    isTito = chat.isTito,
-                                    otherUserId = otherParticipant
-                                )
-                            }
+                        ChatRowState(
+                            id = chat.id,
+                            title = resolvedName,
+                            subtitle = chat.lastMessage.ifBlank { "Empieza la conversación" },
+                            time = formatTimestamp(chat.lastMessageAt),
+                            unread = chat.unreadCount[userId] ?: 0,
+                            isTito = chat.isTito,
+                            otherUserId = otherParticipant
+                        )
+                    }
 
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    error = null,
-                                    chats = rows
-                                )
-                            }
-                        }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = null,
+                            chats = rows
+                        )
+                    }
+                }
         }
     }
 

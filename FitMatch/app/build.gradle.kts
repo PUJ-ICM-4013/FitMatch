@@ -111,4 +111,7 @@ dependencies {
     // build.gradle (Module: app)
     implementation("com.cloudinary:cloudinary-android:3.0.2")
     implementation(libs.firebase.realtime)
+    implementation("androidx.wear.compose:compose-material:1.4.0")
+    implementation("androidx.wear.compose:compose-foundation:1.4.0")
+    implementation("androidx.wear.compose:compose-navigation:1.4.0")
 }

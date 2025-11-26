@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.compose.FitMatchTheme
 import com.example.fitmatch.presentation.viewmodel.user.ProfileViewModel
+import androidx.compose.runtime.saveable.rememberSaveable
+
 
 data class ProfileSection(
     val title: String,
@@ -50,6 +52,8 @@ fun ProfileScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     val uiState by viewModel.uiState.collectAsState()
+    var isWearableConnected by rememberSaveable { mutableStateOf(false) }
+
 
     // Cargar datos del usuario al iniciar
     LaunchedEffect(Unit) {
@@ -219,6 +223,59 @@ fun ProfileScreen(
                                 fontSize = 14.sp,
                                 color = colors.onSurfaceVariant
                             )
+                        }
+                    }
+                }
+                item {
+                    // Conexión con wearable
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = colors.primaryContainer),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Watch,
+                                contentDescription = "Wearable",
+                                tint = colors.onPrimaryContainer,
+                                modifier = Modifier.size(32.dp)
+                            )
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Conecta tu wearable",
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.onPrimaryContainer
+                                )
+                                Text(
+                                    text = "Sincroniza el dashboard del reloj con tu cuenta para ver tu actividad en tiempo real.",
+                                    fontSize = 14.sp,
+                                    color = colors.onPrimaryContainer.copy(alpha = 0.9f)
+                                )
+                            }
+
+                            Button(
+                                onClick = { isWearableConnected = !isWearableConnected },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isWearableConnected) colors.secondary else colors.primary,
+                                    contentColor = if (isWearableConnected) colors.onSecondary else colors.onPrimary
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = if (isWearableConnected) "Conectado" else "Conectar",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
                 }
