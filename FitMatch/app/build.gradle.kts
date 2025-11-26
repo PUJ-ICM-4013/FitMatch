@@ -111,5 +111,4 @@ dependencies {
     // build.gradle (Module: app)
     implementation("com.cloudinary:cloudinary-android:3.0.2")
     implementation(libs.firebase.realtime)
-    implementation("com.google.firebase:firebase-messaging")
 }
