@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.withContext
 
 private fun formatTimestamp(value: Long): String {
     if (value == 0L) return ""
@@ -134,16 +134,18 @@ class ChatListViewModel(
             return
         }
 
-        viewModelScope.launch(dispatcher) {
+        viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isStartingChat = true, error = null) }
-                val existingChat = _uiState.value.chats.firstOrNull { it.otherUserId == userId }
-                val chatId = existingChat?.id ?: realtimeRepo.createChat(
-                    Chat(
-                        participantIds = listOf(currentUserId, userId)
+                val chatId = withContext(dispatcher) {
+                    val existingChat = _uiState.value.chats.firstOrNull { it.otherUserId == userId }
+                    existingChat?.id ?: realtimeRepo.createChat(
+                        Chat(
+                            participantIds = listOf(currentUserId, userId)
+                        )
                     )
-                )
-                onChatReady(chatId)
+                }
+                withContext(Dispatchers.Main) { onChatReady(chatId) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message ?: "No se pudo iniciar el chat") }
             } finally {
