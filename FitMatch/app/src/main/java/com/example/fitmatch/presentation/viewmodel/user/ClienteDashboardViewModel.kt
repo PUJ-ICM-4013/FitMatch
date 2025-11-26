@@ -5,6 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitmatch.presentation.ui.screens.cliente.state.ClienteDashboardUiState
@@ -13,7 +14,6 @@ import com.example.fitmatch.presentation.ui.screens.cliente.state.SwipeAction
 import com.example.fitmatch.data.realtimedb.FirebaseRealtimeDatabaseRepository
 import com.example.fitmatch.data.realtimedb.RealtimeDatabaseRepository
 import com.example.fitmatch.model.product.Product
-
 import com.example.fitmatch.presentation.ui.screens.cliente.state.SwipeActionHistory
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
-
+import com.example.fitmatch.data.wear.MobileWearDataLayerManager
+import com.example.fitmatch.data.wear.MobileWearDataLayerListenerService
+import com.example.fitmatch.wear.model.WearProduct
 
 class ClienteDashboardViewModel(
     private val context: Context,
@@ -33,6 +35,59 @@ class ClienteDashboardViewModel(
 
     private val _uiState = MutableStateFlow(ClienteDashboardUiState())
     val uiState: StateFlow<ClienteDashboardUiState> = _uiState.asStateFlow()
+
+    private val wearManager = MobileWearDataLayerManager(context)
+
+    init {
+        // Registrar listeners del reloj
+        setupWearListeners()
+    }
+
+    private fun setupWearListeners() {
+        // Cuando el reloj solicita siguiente prenda
+        MobileWearDataLayerListenerService.onWearRequestNextListener = {
+            Log.d("ClienteDashboardVM", "Reloj solicita prenda")
+            sendCurrentProductToWear()
+        }
+
+        // Cuando el reloj envía una acción (like/pass)
+        MobileWearDataLayerListenerService.onWearActionListener = { action, productId ->
+            when (action) {
+                "LIKE" -> {
+                    Log.d("ClienteDashboardVM", "Reloj: LIKE $productId")
+                    onSwipeRight() // Usa tu lógica existente
+                }
+
+                "PASS" -> {
+                    Log.d("ClienteDashboardVM", "Reloj: PASS $productId")
+                    onSwipeLeft()  // Usa tu lógica existente
+                }
+            }
+        }
+    }
+
+    private fun sendCurrentProductToWear() {
+        val currentProduct = _uiState.value.currentProduct ?: return
+
+        viewModelScope.launch {
+            try {
+                val wearProduct = WearProduct(
+                    id = currentProduct.id,
+                    title = currentProduct.title,
+                    brand = currentProduct.brand,
+                    price = currentProduct.price,
+                    imageUrl = currentProduct.imageUrl,
+                    category = currentProduct.category,
+                    color = currentProduct.color,
+                    size = currentProduct.size
+                )
+
+                wearManager.sendProductToWear(wearProduct)
+            } catch (e: Exception) {
+                Log.e("ClienteDashboardVM", "Error enviando a reloj: ${e.message}")
+            }
+        }
+    }
 
     // eventos
     private val _events = Channel<DashboardEvent>()
@@ -232,6 +287,7 @@ class ClienteDashboardViewModel(
                 SwipeAction.PASS -> _events.send(DashboardEvent.ProductPassed(product))
                 else -> {}
             }
+            sendCurrentProductToWear()
         }
     }
 

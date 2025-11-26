@@ -64,6 +64,17 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".data.wear.MobileWearDataLayerListenerService"
+            android:exported="true"
+            android:enabled="true"
+            tools:node="merge">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

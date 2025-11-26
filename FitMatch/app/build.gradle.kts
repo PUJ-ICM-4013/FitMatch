@@ -47,6 +47,9 @@ android {
 
 dependencies {
 
+    // Add wear module dependency
+    implementation(project(":app_wear"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -96,6 +99,9 @@ dependencies {
     implementation("androidx.credentials:credentials")
     implementation("androidx.credentials:credentials-play-services-auth")
     implementation("com.google.android.libraries.identity.googleid:googleid")
+
+    // Wear OS
+    implementation("com.google.android.gms:play-services-wearable:18.1.0")
 
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.4.0")
